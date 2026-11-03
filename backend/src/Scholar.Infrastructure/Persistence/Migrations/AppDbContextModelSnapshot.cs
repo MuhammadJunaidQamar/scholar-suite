@@ -2265,21 +2265,11 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(40)")
                         .HasColumnName("key");
 
-                    b.Property<long>("NextValue")
-                        .HasColumnType("bigint")
-                        .HasColumnName("next_value");
-
                     b.Property<string>("Pattern")
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)")
                         .HasColumnName("pattern");
-
-                    b.Property<string>("PeriodKey")
-                        .IsRequired()
-                        .HasMaxLength(12)
-                        .HasColumnType("character varying(12)")
-                        .HasColumnName("period_key");
 
                     b.Property<string>("Prefix")
                         .IsRequired()
@@ -2313,6 +2303,67 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_number_sequences_school_id_key");
 
                     b.ToTable("number_sequences", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Platform.NumberSequenceCounter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("key");
+
+                    b.Property<long>("NextValue")
+                        .HasColumnType("bigint")
+                        .HasColumnName("next_value");
+
+                    b.Property<string>("PeriodKey")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)")
+                        .HasColumnName("period_key");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_number_sequence_counters");
+
+                    b.HasIndex("SchoolId", "Key", "PeriodKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_number_sequence_counters_school_id_key_period_key");
+
+                    b.ToTable("number_sequence_counters", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_number_sequence_counters_next_value", "next_value >= 1");
+                        });
                 });
 
             modelBuilder.Entity("Scholar.Domain.Platform.School", b =>
@@ -3792,6 +3843,16 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_number_sequences_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Platform.NumberSequenceCounter", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_number_sequence_counters_schools_school_id");
                 });
 
             modelBuilder.Entity("Scholar.Domain.Students.EmergencyContact", b =>

@@ -24,8 +24,12 @@ public sealed class Campus : TenantEntity, IHasAuditTrail
     public bool IsActive { get; set; } = true;
 }
 
-/// <summary>Configurable document numbering (admission numbers, receipts, challans…). Advanced atomically in SQL.</summary>
-public sealed class NumberSequence : TenantEntity
+/// <summary>
+/// Configurable document numbering (admission numbers, receipts, challans…). The format lives here; the running
+/// counters live in <see cref="NumberSequenceCounter"/>, one per period, so a back-dated document (an admission
+/// recorded for last year) draws from its own period and can never collide with numbers issued for another.
+/// </summary>
+public sealed class NumberSequence : TenantEntity, IHasAuditTrail
 {
     private NumberSequence() { }
 
@@ -43,8 +47,33 @@ public sealed class NumberSequence : TenantEntity
     /// <summary>Tokens: {prefix} {yyyy} {yy} {mm} {seq} {seq:N} (N = zero-padded width).</summary>
     public string Pattern { get; set; } = default!;
     public SequenceResetPolicy ResetPolicy { get; set; }
-    public string PeriodKey { get; set; } = string.Empty;
+
+    /// <summary>The counter bucket a document dated <paramref name="date"/> draws from.</summary>
+    public static string PeriodFor(SequenceResetPolicy policy, DateOnly date) => policy switch
+    {
+        SequenceResetPolicy.Yearly => date.ToString("yyyy", System.Globalization.CultureInfo.InvariantCulture),
+        SequenceResetPolicy.Monthly => date.ToString("yyyyMM", System.Globalization.CultureInfo.InvariantCulture),
+        _ => string.Empty,
+    };
+}
+
+/// <summary>The next value of one sequence in one period (a year, a month, or the single period of a never-resetting sequence).</summary>
+public sealed class NumberSequenceCounter : TenantEntity, IConcurrencyVersioned, IHasAuditTrail
+{
+    private NumberSequenceCounter() { }
+
+    public NumberSequenceCounter(Guid schoolId, string key, string periodKey, long nextValue)
+    {
+        SchoolId = schoolId;
+        Key = key;
+        PeriodKey = periodKey;
+        NextValue = nextValue;
+    }
+
+    public string Key { get; private set; } = default!;
+    public string PeriodKey { get; private set; } = default!;
     public long NextValue { get; set; } = 1;
+    public uint Version { get; set; }
 }
 
 public enum SequenceResetPolicy { Never, Yearly, Monthly }
@@ -77,6 +106,6 @@ public static class SequenceKeys
             [Certificate] = ("CERT", "{prefix}-{yyyy}-{seq:4}", SequenceResetPolicy.Yearly),
             [PurchaseOrder] = ("PO", "{prefix}-{yyyy}-{seq:4}", SequenceResetPolicy.Yearly),
             [Accession] = ("ACC", "{prefix}-{seq:6}", SequenceResetPolicy.Never),
-            [Payroll] = ("PR", "{prefix}-{yyyy}{mm}", SequenceResetPolicy.Never),
+            [Payroll] = ("PR", "{prefix}-{yyyy}{mm}-{seq:2}", SequenceResetPolicy.Monthly),
         };
 }

@@ -22,6 +22,7 @@ public interface IAppDbContext
     DbSet<School> Schools { get; }
     DbSet<Campus> Campuses { get; }
     DbSet<NumberSequence> NumberSequences { get; }
+    DbSet<NumberSequenceCounter> NumberSequenceCounters { get; }
 
     // Identity & access
     DbSet<User> Users { get; }

@@ -91,8 +91,18 @@ internal sealed class NumberSequenceConfiguration : IEntityTypeConfiguration<Num
         b.Property(s => s.Key).HasMaxLength(40);
         b.Property(s => s.Prefix).HasMaxLength(20);
         b.Property(s => s.Pattern).HasMaxLength(80);
-        b.Property(s => s.PeriodKey).HasMaxLength(12);
         b.HasIndex(s => new { s.SchoolId, s.Key }).IsUnique();
+    }
+}
+
+internal sealed class NumberSequenceCounterConfiguration : IEntityTypeConfiguration<NumberSequenceCounter>
+{
+    public void Configure(EntityTypeBuilder<NumberSequenceCounter> b)
+    {
+        b.ToTable("number_sequence_counters", t => t.HasCheckConstraint("ck_number_sequence_counters_next_value", "next_value >= 1"));
+        b.Property(c => c.Key).HasMaxLength(40);
+        b.Property(c => c.PeriodKey).HasMaxLength(12);
+        b.HasIndex(c => new { c.SchoolId, c.Key, c.PeriodKey }).IsUnique();
     }
 }
 

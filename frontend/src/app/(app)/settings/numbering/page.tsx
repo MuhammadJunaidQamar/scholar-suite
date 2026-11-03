@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSession } from "@/lib/auth/session";
@@ -41,24 +41,34 @@ function preview(pattern: string, prefix: string, value: number) {
   return text.replace(/\{seq(?::(\d{1,2}))?\}/g, (_, width?: string) => String(value).padStart(width ? Number(width) : 1, "0"));
 }
 
-const schema = z.object({
-  prefix: z.string().trim().min(1, "Enter a prefix.").max(20).regex(/^[A-Za-z0-9/-]+$/, "Letters, digits, '/' or '-'."),
-  pattern: z.string().trim().min(1).max(80).refine((p) => p.includes("{seq"), "Include {seq} or {seq:N}."),
-  resetPolicy: z.enum(["Never", "Yearly", "Monthly"]),
-});
+const schema = z
+  .object({
+    prefix: z.string().trim().min(1, "Enter a prefix.").max(20).regex(/^[A-Za-z0-9/-]+$/, "Letters, digits, '/' or '-'."),
+    pattern: z.string().trim().min(1).max(80).refine((p) => p.includes("{seq"), "Include {seq} or {seq:N}."),
+    resetPolicy: z.enum(["Never", "Yearly", "Monthly"]),
+    nextNumber: z.coerce.number<number>().int("Whole numbers only.").min(1).max(999_999_999),
+  })
+  .superRefine((v, ctx) => {
+    // Mirrors the server: a counter that restarts must print its period, or restarted numbers would repeat.
+    if (v.resetPolicy !== "Never" && !v.pattern.includes("{yyyy}") && !v.pattern.includes("{yy}"))
+      ctx.addIssue({ code: "custom", path: ["pattern"], message: "Numbers that restart must include the year ({yyyy} or {yy})." });
+    else if (v.resetPolicy === "Monthly" && !v.pattern.includes("{mm}"))
+      ctx.addIssue({ code: "custom", path: ["pattern"], message: "Numbers that restart each month must include {mm}." });
+  });
 type Values = z.infer<typeof schema>;
 
 function SequenceDialog({ sequence, onOpenChange }: { sequence: Sequence | null; onOpenChange: (open: boolean) => void }) {
   const update = useUpdateSequence();
   const form = useForm<Values>({ resolver: zodResolver(schema) });
-  const pattern = form.watch("pattern") ?? "";
-  const prefix = form.watch("prefix") ?? "";
+  const [pattern = "", prefix = "", nextNumber] = useWatch({ control: form.control, name: ["pattern", "prefix", "nextNumber"] });
+  const current = sequence?.nextValue ?? 1;
   return (
     <FormDialog open={sequence !== null} onOpenChange={onOpenChange} form={form}
-      defaults={{ prefix: sequence?.prefix ?? "", pattern: sequence?.pattern ?? "", resetPolicy: sequence?.resetPolicy ?? "Never" }}
+      defaults={{ prefix: sequence?.prefix ?? "", pattern: sequence?.pattern ?? "", resetPolicy: sequence?.resetPolicy ?? "Never", nextNumber: current }}
       title={labels[sequence?.key ?? ""]?.title ?? "Numbering"} description="Changes apply to the next number issued. Existing numbers never change."
       submitLabel="Save format" successMessage="Numbering saved"
-      onSubmit={(v) => update.mutateAsync({ key: sequence!.key, body: v })}>
+      onSubmit={({ nextNumber: next, ...v }) =>
+        update.mutateAsync({ key: sequence!.key, body: next !== current ? { ...v, nextNumber: next } : v })}>
       <FieldRow>
         <Field label="Prefix" htmlFor="seq-prefix" error={form.formState.errors.prefix?.message}><Input className="uppercase" {...form.register("prefix")} /></Field>
         <Field label="Restarts" htmlFor="seq-reset">
@@ -71,9 +81,13 @@ function SequenceDialog({ sequence, onOpenChange }: { sequence: Sequence | null;
         hint="{prefix} · {yyyy} or {yy} year · {mm} month · {seq:5} number padded to 5 digits">
         <Input className="font-mono text-sm" {...form.register("pattern")} />
       </Field>
+      <Field label="Continue from" htmlFor="seq-next" error={form.formState.errors.nextNumber?.message}
+        hint={`Raise this to carry on from a previous system. Numbers only move forward, so it can't go below ${current}.`}>
+        <Input type="number" inputMode="numeric" min={current} className="w-40 font-mono tabular-nums" {...form.register("nextNumber")} />
+      </Field>
       <div className="rounded-md border border-dashed border-line-strong bg-sunken/60 px-3 py-2.5">
         <p className="text-xs text-ink-3">Next number</p>
-        <p className="font-mono text-lg text-ink">{preview(pattern, prefix, sequence?.nextValue ?? 1)}</p>
+        <p className="font-mono text-lg text-ink">{preview(pattern, prefix, Number(nextNumber) || 1)}</p>
       </div>
     </FormDialog>
   );

@@ -317,7 +317,7 @@ export const useSequences = () => useList<Sequence[]>(orgKeys.sequences, "/org/s
 export function useUpdateSequence() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ key, body }: { key: string; body: Pick<Sequence, "prefix" | "pattern" | "resetPolicy"> }) =>
+    mutationFn: ({ key, body }: { key: string; body: Pick<Sequence, "prefix" | "pattern" | "resetPolicy"> & { nextNumber?: number } }) =>
       api.put<Sequence>(`/org/school/sequences/${key}`, body),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: orgKeys.sequences }),
   });

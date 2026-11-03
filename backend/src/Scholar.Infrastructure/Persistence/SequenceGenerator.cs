@@ -1,4 +1,3 @@
-using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
@@ -8,9 +7,11 @@ using Scholar.Domain.Platform;
 namespace Scholar.Infrastructure.Persistence;
 
 /// <summary>
-/// Advances <c>number_sequences</c> with a single <c>UPDATE … RETURNING</c>. The row lock is held until the caller's
-/// transaction ends, so concurrent callers are serialised and numbers are never duplicated; a rolled-back transaction
-/// returns its number, so sequences stay gap-free.
+/// Issues the next number of a sequence for the period the document is dated in. The counter row for that period is
+/// upserted with a single <c>INSERT … ON CONFLICT DO UPDATE … RETURNING</c>; its row lock is held until the caller's
+/// transaction ends, so concurrent callers are serialised and numbers are never duplicated, and a rolled-back
+/// transaction returns its number, so sequences stay gap-free. Each period has its own counter, so back-dated
+/// documents never disturb (or collide with) the current period.
 /// </summary>
 internal sealed class SequenceGenerator(AppDbContext db, ITenantContext tenant) : ISequenceGenerator
 {
@@ -34,8 +35,8 @@ internal sealed class SequenceGenerator(AppDbContext db, ITenantContext tenant) 
 
             await using (var insert = new NpgsqlCommand(
                              """
-                             INSERT INTO number_sequences (id, school_id, key, prefix, pattern, reset_policy, period_key, next_value, created_at)
-                             VALUES (@id, @school, @key, @prefix, @pattern, @reset, '', 1, now())
+                             INSERT INTO number_sequences (id, school_id, key, prefix, pattern, reset_policy, created_at)
+                             VALUES (@id, @school, @key, @prefix, @pattern, @reset, now())
                              ON CONFLICT (school_id, key) DO NOTHING
                              """, connection, transaction))
             {
@@ -48,24 +49,28 @@ internal sealed class SequenceGenerator(AppDbContext db, ITenantContext tenant) 
                 await insert.ExecuteNonQueryAsync(ct);
             }
 
-            var year = date.Year.ToString(CultureInfo.InvariantCulture);
-            var month = date.ToString("yyyyMM", CultureInfo.InvariantCulture);
-            await using var update = new NpgsqlCommand(
+            // Reading the format and bumping the period's counter happen in one statement.
+            await using var next = new NpgsqlCommand(
                 """
-                UPDATE number_sequences SET
-                  next_value = CASE WHEN period_key = (CASE reset_policy WHEN 'Yearly' THEN @year WHEN 'Monthly' THEN @month ELSE '' END)
-                               THEN next_value + 1 ELSE 2 END,
-                  period_key = CASE reset_policy WHEN 'Yearly' THEN @year WHEN 'Monthly' THEN @month ELSE '' END,
-                  updated_at = now()
-                WHERE school_id = @school AND key = @key
-                RETURNING next_value - 1, prefix, pattern
+                WITH cfg AS (
+                  SELECT prefix, pattern,
+                         CASE reset_policy WHEN 'Yearly' THEN @year WHEN 'Monthly' THEN @month ELSE '' END AS period_key
+                  FROM number_sequences WHERE school_id = @school AND key = @key
+                ), bumped AS (
+                  INSERT INTO number_sequence_counters AS c (id, school_id, key, period_key, next_value, created_at)
+                  SELECT @id, @school, @key, cfg.period_key, 2, now() FROM cfg
+                  ON CONFLICT (school_id, key, period_key) DO UPDATE SET next_value = c.next_value + 1, updated_at = now()
+                  RETURNING c.next_value - 1 AS value
+                )
+                SELECT bumped.value, cfg.prefix, cfg.pattern FROM bumped CROSS JOIN cfg
                 """, connection, transaction);
-            update.Parameters.AddWithValue("school", schoolId);
-            update.Parameters.AddWithValue("key", key);
-            update.Parameters.AddWithValue("year", year);
-            update.Parameters.AddWithValue("month", month);
+            next.Parameters.AddWithValue("id", Guid.CreateVersion7());
+            next.Parameters.AddWithValue("school", schoolId);
+            next.Parameters.AddWithValue("key", key);
+            next.Parameters.AddWithValue("year", NumberSequence.PeriodFor(SequenceResetPolicy.Yearly, date));
+            next.Parameters.AddWithValue("month", NumberSequence.PeriodFor(SequenceResetPolicy.Monthly, date));
 
-            await using var reader = await update.ExecuteReaderAsync(ct);
+            await using var reader = await next.ExecuteReaderAsync(ct);
             if (!await reader.ReadAsync(ct))
             {
                 throw new InvalidOperationException($"Number sequence '{key}' could not be advanced.");

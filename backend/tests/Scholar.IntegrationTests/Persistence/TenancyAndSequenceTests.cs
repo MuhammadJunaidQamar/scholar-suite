@@ -120,4 +120,29 @@ public sealed class TenancyAndSequenceTests(ApiFactory factory) : IntegrationTes
             Assert.Equal("ADM-2026-0002", await sequences.NextAsync(SequenceKeys.Admission, new DateOnly(2026, 2, 1)));
         }
     }
+
+    [Fact]
+    public async Task Back_dated_documents_draw_from_their_own_period_and_never_collide()
+    {
+        var a = await Factory.CreateSchoolWithUserAsync("alpha");
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var tenant = scope.ServiceProvider.GetRequiredService<ITenantContext>();
+        var sequences = scope.ServiceProvider.GetRequiredService<ISequenceGenerator>();
+
+        using (tenant.Enter(a.SchoolId))
+        {
+            Assert.Equal("ADM-2026-0001", await sequences.NextAsync(SequenceKeys.Admission, new DateOnly(2026, 8, 3)));
+            Assert.Equal("ADM-2026-0002", await sequences.NextAsync(SequenceKeys.Admission, new DateOnly(2026, 8, 4)));
+
+            // Registering a student who joined in 2024 must not restart 2026's numbering.
+            Assert.Equal("ADM-2024-0001", await sequences.NextAsync(SequenceKeys.Admission, new DateOnly(2024, 8, 12)));
+            Assert.Equal("ADM-2026-0003", await sequences.NextAsync(SequenceKeys.Admission, new DateOnly(2026, 9, 1)));
+            Assert.Equal("ADM-2024-0002", await sequences.NextAsync(SequenceKeys.Admission, new DateOnly(2024, 9, 2)));
+
+            // Monthly sequences keep one counter per month in the same way.
+            Assert.Equal("APP-2611-0001", await sequences.NextAsync(SequenceKeys.Application, new DateOnly(2026, 11, 2)));
+            Assert.Equal("APP-2610-0001", await sequences.NextAsync(SequenceKeys.Application, new DateOnly(2026, 10, 30)));
+            Assert.Equal("APP-2611-0002", await sequences.NextAsync(SequenceKeys.Application, new DateOnly(2026, 11, 3)));
+        }
+    }
 }

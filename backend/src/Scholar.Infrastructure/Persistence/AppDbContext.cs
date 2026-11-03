@@ -30,6 +30,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ITenant
     public DbSet<School> Schools => Set<School>();
     public DbSet<Campus> Campuses => Set<Campus>();
     public DbSet<NumberSequence> NumberSequences => Set<NumberSequence>();
+    public DbSet<NumberSequenceCounter> NumberSequenceCounters => Set<NumberSequenceCounter>();
     public DbSet<SchoolMembership> SchoolMemberships => Set<SchoolMembership>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();

@@ -38,7 +38,9 @@ public sealed record ModuleDto(string Key, bool Enabled, bool Core);
 public sealed record SequenceDto(string Key, string Prefix, string Pattern, SequenceResetPolicy ResetPolicy, long NextValue,
     string Preview);
 
-public sealed record UpdateSequenceRequest(string Prefix, string Pattern, SequenceResetPolicy ResetPolicy);
+/// <param name="NextNumber">Optionally moves the current period's counter forward (e.g. to continue numbering from a
+/// previous system). Counters never move backwards, so an issued number is never issued again.</param>
+public sealed record UpdateSequenceRequest(string Prefix, string Pattern, SequenceResetPolicy ResetPolicy, long? NextNumber = null);
 
 public sealed class UpdateSchoolProfileValidator : AbstractValidator<UpdateSchoolProfileRequest>
 {
@@ -89,11 +91,21 @@ public sealed class UpdateSequenceValidator : AbstractValidator<UpdateSequenceRe
             .WithMessage("Use letters, digits, '/' or '-'.");
         RuleFor(x => x.Pattern).NotEmpty().MaximumLength(80).Must(p => p.Contains("{seq", StringComparison.Ordinal))
             .WithMessage("The pattern must contain {seq} or {seq:N}.");
+        // A counter that restarts must carry its period in the number, or the restarted numbers would repeat old ones.
+        RuleFor(x => x.Pattern)
+            .Must(p => p.Contains("{yyyy}", StringComparison.Ordinal) || p.Contains("{yy}", StringComparison.Ordinal))
+            .When(x => x.ResetPolicy != SequenceResetPolicy.Never)
+            .WithMessage("Numbers that restart each year or month must include the year ({yyyy} or {yy}), or they would repeat.");
+        RuleFor(x => x.Pattern).Must(p => p.Contains("{mm}", StringComparison.Ordinal))
+            .When(x => x.ResetPolicy == SequenceResetPolicy.Monthly)
+            .WithMessage("Numbers that restart each month must include the month ({mm}), or they would repeat.");
+        RuleFor(x => x.NextNumber).InclusiveBetween(1, 999_999_999).When(x => x.NextNumber is not null);
     }
 }
 
 /// <summary>School profile, branding, optional modules, policy settings and document numbering.</summary>
-public sealed class SchoolSettingsService(IAppDbContext db, IAccessContext access, ISchoolModuleGate modules, ITenantContext tenant)
+public sealed class SchoolSettingsService(
+    IAppDbContext db, IAccessContext access, ISchoolModuleGate modules, ITenantContext tenant, ISchoolClock schoolClock)
 {
     private async Task<School> LoadAsync(CancellationToken ct) =>
         await db.Schools.SingleOrDefaultAsync(s => s.Id == tenant.SchoolId, ct) ?? throw new NotFoundException("School");
@@ -160,33 +172,64 @@ public sealed class SchoolSettingsService(IAppDbContext db, IAccessContext acces
     public async Task<IReadOnlyList<SequenceDto>> ListSequencesAsync(CancellationToken ct)
     {
         await access.RequireAsync(Permissions.School.View, ct);
+        var today = await schoolClock.TodayAsync(ct);
         var sequences = await db.NumberSequences.OrderBy(s => s.Key).ToListAsync(ct);
-        return sequences.Select(ToDto).ToList();
+        var periods = sequences.Select(s => NumberSequence.PeriodFor(s.ResetPolicy, today)).Distinct().ToList();
+        var counters = await db.NumberSequenceCounters.Where(c => periods.Contains(c.PeriodKey))
+            .ToDictionaryAsync(c => (c.Key, c.PeriodKey), c => c.NextValue, ct);
+        return sequences
+            .Select(s => ToDto(s, counters.GetValueOrDefault((s.Key, NumberSequence.PeriodFor(s.ResetPolicy, today)), 1), today))
+            .ToList();
     }
 
     public async Task<SequenceDto> UpdateSequenceAsync(string key, UpdateSequenceRequest request, CancellationToken ct)
     {
         await access.RequireAsync(Permissions.School.Manage, ct);
+        var today = await schoolClock.TodayAsync(ct);
         var sequence = await db.NumberSequences.SingleOrDefaultAsync(s => s.Key == key, ct) ?? throw new NotFoundException("Sequence", key);
+        var policyChanged = sequence.ResetPolicy != request.ResetPolicy;
         sequence.Prefix = request.Prefix.Trim().ToUpperInvariant();
         sequence.Pattern = request.Pattern.Trim();
-        if (sequence.ResetPolicy != request.ResetPolicy)
+        sequence.ResetPolicy = request.ResetPolicy;
+
+        var period = NumberSequence.PeriodFor(sequence.ResetPolicy, today);
+        var counter = await db.NumberSequenceCounters.SingleOrDefaultAsync(c => c.Key == key && c.PeriodKey == period, ct);
+        var floor = counter?.NextValue ?? 1;
+        if (policyChanged)
         {
-            // Changing the reset rhythm starts a fresh period on the next number.
-            sequence.ResetPolicy = request.ResetPolicy;
-            sequence.PeriodKey = string.Empty;
+            // A new rhythm continues from the highest number issued under any period, so a pattern that still prints the
+            // same tokens can never repeat a number issued under the old rhythm.
+            floor = Math.Max(floor, await db.NumberSequenceCounters.Where(c => c.Key == key).MaxAsync(c => (long?)c.NextValue, ct) ?? 1);
+        }
+
+        if (request.NextNumber is { } requested)
+        {
+            Guard.Against(requested < floor, "sequence.cannot_go_back",
+                $"Numbers only move forward, so an issued number is never reused. The next number is already {floor}.");
+            floor = requested;
+        }
+
+        if (floor > (counter?.NextValue ?? 1))
+        {
+            if (counter is null)
+            {
+                db.NumberSequenceCounters.Add(counter = new NumberSequenceCounter(sequence.SchoolId, key, period, floor));
+            }
+            else
+            {
+                counter.NextValue = floor;
+            }
         }
 
         await db.SaveChangesAsync(ct);
-        return ToDto(sequence);
+        return ToDto(sequence, counter?.NextValue ?? 1, today);
     }
 
     /// <summary>Formats a sample number with the given pattern, used for live previews while editing.</summary>
     public static string Preview(string pattern, string prefix, long value, DateOnly date) => SequencePattern.Format(pattern, prefix, value, date);
 
-    private static SequenceDto ToDto(NumberSequence s) =>
-        new(s.Key, s.Prefix, s.Pattern, s.ResetPolicy, s.NextValue,
-            SequencePattern.Format(s.Pattern, s.Prefix, s.NextValue, DateOnly.FromDateTime(DateTime.UtcNow)));
+    private static SequenceDto ToDto(NumberSequence s, long nextValue, DateOnly today) =>
+        new(s.Key, s.Prefix, s.Pattern, s.ResetPolicy, nextValue, SequencePattern.Format(s.Pattern, s.Prefix, nextValue, today));
 
     private static SchoolProfileDto ToDto(School s) => new(s.Id, s.Code, s.Name, s.ShortName, s.LegalName, s.Motto,
         s.RegistrationNumber, s.Email, s.Phone, s.Website, AddressDto.From(s.Address), s.Timezone, s.CurrencyCode, s.Locale,

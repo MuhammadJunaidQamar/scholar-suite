@@ -168,6 +168,29 @@ public sealed class SchoolConfigurationTests(ApiFactory factory) : IntegrationTe
         Assert.StartsWith("GFS/", sequence.Preview, StringComparison.Ordinal);
         Assert.EndsWith("/00001", sequence.Preview, StringComparison.Ordinal);
 
+        // A restarting counter must print its period, or restarted numbers would repeat earlier ones.
+        var monthlyWithoutMonth = await owner.SendAsync(HttpMethod.Put, "/api/org/school/sequences/receipt",
+            new { prefix = "RCT", pattern = "{prefix}-{yyyy}-{seq:5}", resetPolicy = "Monthly" });
+        Assert.Equal("validation.failed", await monthlyWithoutMonth.ProblemCodeAsync());
+
+        // Continuing from a previous system's numbering moves the counter forward…
+        var continued = await (await owner.SendAsync(HttpMethod.Put, "/api/org/school/sequences/receipt",
+            new { prefix = "RCT", pattern = "{prefix}-{yy}{mm}-{seq:5}", resetPolicy = "Monthly", nextNumber = 453 })).ReadJsonAsync<SequenceDto>();
+        Assert.Equal(453, continued.NextValue);
+        Assert.EndsWith("-00453", continued.Preview, StringComparison.Ordinal);
+
+        // …but never backwards, so an issued number can't be issued twice.
+        var backwards = await owner.SendAsync(HttpMethod.Put, "/api/org/school/sequences/receipt",
+            new { prefix = "RCT", pattern = "{prefix}-{yy}{mm}-{seq:5}", resetPolicy = "Monthly", nextNumber = 10 });
+        Assert.Equal("sequence.cannot_go_back", await backwards.ProblemCodeAsync());
+
+        // Switching rhythm continues from the highest number already issued instead of starting again at 1.
+        var yearly = await (await owner.SendAsync(HttpMethod.Put, "/api/org/school/sequences/receipt",
+            new { prefix = "RCT", pattern = "{prefix}-{yy}{mm}-{seq:5}", resetPolicy = "Yearly" })).ReadJsonAsync<SequenceDto>();
+        Assert.Equal(453, yearly.NextValue);
+        var listed = await owner.GetJsonAsync<List<SequenceDto>>("/api/org/school/sequences");
+        Assert.Equal(453, listed.Single(s => s.Key == "receipt").NextValue);
+
         var (_, teacherEmail) = await Factory.AddMemberAsync(school, SystemRoles.Teacher);
         using var teacher = Factory.CreateBrowserClient();
         await teacher.LoginAsync(teacherEmail, TestData.Password);
