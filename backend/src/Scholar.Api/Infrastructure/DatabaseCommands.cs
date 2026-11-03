@@ -4,8 +4,9 @@ using Scholar.Infrastructure.Persistence;
 namespace Scholar.Api.Infrastructure;
 
 /// <summary>
-/// Command-line operations: <c>dotnet run -- migrate</c> applies migrations and exits. In Development the API also
-/// migrates on start when <c>Database:MigrateOnStartup</c> is true.
+/// Command-line operations: <c>dotnet run -- migrate</c> applies migrations and exits; <c>dotnet run -- seed</c>
+/// (Development only) migrates and loads demo data. In Development the API also migrates on start when
+/// <c>Database:MigrateOnStartup</c> is true.
 /// </summary>
 internal static class DatabaseCommands
 {
@@ -14,6 +15,19 @@ internal static class DatabaseCommands
         if (args.Contains("migrate", StringComparer.OrdinalIgnoreCase))
         {
             await MigrateAsync(app.Services);
+            return true;
+        }
+
+        if (args.Contains("seed", StringComparer.OrdinalIgnoreCase))
+        {
+            if (!app.Environment.IsDevelopment())
+            {
+                throw new InvalidOperationException("Demo data can only be seeded in the Development environment.");
+            }
+
+            await MigrateAsync(app.Services);
+            await using var scope = app.Services.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<Scholar.Infrastructure.Seeding.DemoSeeder>().SeedAsync();
             return true;
         }
 

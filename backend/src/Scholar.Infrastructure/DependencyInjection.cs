@@ -30,6 +30,7 @@ public static class DependencyInjection
         });
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<ISequenceGenerator, SequenceGenerator>();
+        services.AddScoped<Seeding.DemoSeeder>();
 
         return services;
     }
