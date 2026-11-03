@@ -1,7 +1,11 @@
 using System.Text.Json.Serialization;
+using Scholar.Api.Auth;
+using Scholar.Api.Endpoints;
 using Scholar.Api.Infrastructure;
+using Scholar.Application;
 using Scholar.Application.Abstractions;
 using Scholar.Infrastructure;
+using Scholar.Infrastructure.Identity;
 using Scholar.Infrastructure.Persistence;
 using Serilog;
 
@@ -22,7 +26,6 @@ try
     builder.Services.ConfigureHttpJsonOptions(options =>
     {
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
     });
 
     builder.Services.AddProblemDetails(options =>
@@ -35,9 +38,13 @@ try
     });
     builder.Services.AddExceptionHandler<ApiExceptionHandler>();
     builder.Services.AddOpenApi();
+
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+    builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddScholarIdentity();
+    builder.Services.AddScholarAuthentication(builder.Configuration);
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<AppDbContext>("database", tags: ["ready"]);
 
@@ -53,11 +60,17 @@ try
     app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0} ms";
+        options.EnrichDiagnosticContext = (diagnostics, http) =>
+        {
+            diagnostics.Set("UserId", http.User.FindFirst(ScholarClaims.UserId)?.Value ?? "-");
+            diagnostics.Set("SchoolId", http.User.FindFirst(ScholarClaims.SchoolId)?.Value ?? "-");
+        };
     });
+    app.UseSecurityHeaders();
 
     if (!app.Environment.IsProduction())
     {
-        app.MapOpenApi();
+        app.MapOpenApi().AllowAnonymous();
         app.UseSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/openapi/v1.json", "Scholar API v1");
@@ -66,18 +79,28 @@ try
         });
     }
 
-    app.MapHealthChecks("/health/live", new() { Predicate = _ => false });
-    app.MapHealthChecks("/health/ready", new() { Predicate = check => check.Tags.Contains("ready") });
+    app.UseRateLimiter();
+    app.UseAuthentication();
+    app.UseMiddleware<CsrfMiddleware>();
+    app.UsePasswordChangeGate();
+    app.UseAuthorization();
 
-    app.MapGet("/api/meta", (IConfiguration configuration) => new
-    {
-        product = configuration["Platform:ProductName"] ?? "Scholar Suite",
-        version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "0.0.0",
-    }).WithTags("Meta").AllowAnonymous();
+    app.MapHealthChecks("/health/live", new() { Predicate = _ => false }).AllowAnonymous();
+    app.MapHealthChecks("/health/ready", new() { Predicate = check => check.Tags.Contains("ready") }).AllowAnonymous();
+
+    var api = app.MapGroup("/api").AddEndpointFilter<ValidationFilter>();
+    api.MapGet("/meta", (IConfiguration configuration) => new
+        {
+            product = configuration["Platform:ProductName"] ?? "Scholar Suite",
+            version = typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "0.0.0",
+        })
+        .WithTags("Meta")
+        .AllowAnonymous();
+    api.MapAuthEndpoints();
 
     app.Run();
 }
-catch (Exception ex) when (ex is not HostAbortedException)
+catch (Exception ex) when (ex is not HostAbortedException && ex.GetType().Name != "StopTheHostException")
 {
     Log.Fatal(ex, "API host terminated unexpectedly");
     throw;

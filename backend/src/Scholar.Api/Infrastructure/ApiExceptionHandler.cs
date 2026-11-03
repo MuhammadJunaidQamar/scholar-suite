@@ -51,6 +51,7 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails,
     private static ProblemDetails? Map(Exception exception) => exception switch
     {
         ValidationException validation => Validation(validation),
+        Application.Identity.UnauthorizedException unauthorized => Problem(401, "Not signed in", unauthorized.Message, unauthorized.Code),
         NotFoundException notFound => Problem(404, "Not found", notFound.Message, "resource.not_found"),
         ForbiddenException forbidden => Problem(403, "Forbidden", forbidden.Message, "access.forbidden"),
         ConflictException conflict => Problem(409, "Conflict", conflict.Message, conflict.Code),
