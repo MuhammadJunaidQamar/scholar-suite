@@ -52,14 +52,22 @@ public sealed class StudentService(IAppDbContext db, IAccessContext access, ISeq
             students = students.Where(s => current.CampusIds!.Contains(s.CampusId));
         }
 
-        students = query.Status is { } status
-            ? students.Where(s => s.Status == status)
-            : query.Scope switch
-            {
-                "all" => students,
-                "left" => students.Where(s => !CurrentStatuses.Contains(s.Status)),
-                _ => students.Where(s => CurrentStatuses.Contains(s.Status)),
-            };
+        if (query.Ids is { Length: > 0 } ids)
+        {
+            // An explicit selection (e.g. "export selected") is taken as is, whatever list it was picked from.
+            students = students.Where(s => ids.Contains(s.Id));
+        }
+        else
+        {
+            students = query.Status is { } status
+                ? students.Where(s => s.Status == status)
+                : query.Scope switch
+                {
+                    "all" => students,
+                    "left" => students.Where(s => !CurrentStatuses.Contains(s.Status)),
+                    _ => students.Where(s => CurrentStatuses.Contains(s.Status)),
+                };
+        }
 
         students = students
             .WhereIf(query.CampusId is not null, s => s.CampusId == query.CampusId)
@@ -260,6 +268,53 @@ public sealed class StudentService(IAppDbContext db, IAccessContext access, ISeq
         return await GetAsync(id, ct);
     }
 
+    /// <summary>
+    /// Moves several current students into one section in a single transaction (re-sectioning at the start of a year,
+    /// merging sections). All move or none do; capacity is checked for the whole group.
+    /// </summary>
+    public async Task<BulkResult> BulkTransferAsync(BulkTransferRequest request, CancellationToken ct)
+    {
+        await access.RequireAsync(Permissions.Students.Update, ct);
+        var current = await access.GetAsync(ct);
+        var ids = request.StudentIds.Distinct().ToList();
+        var moved = await db.InTransactionAsync(async innerCt =>
+        {
+            var target = await LoadSectionForPlacementAsync(request.SectionId, current, innerCt);
+            var students = await db.Students.Include(s => s.Enrollments).Where(s => ids.Contains(s.Id)).ToListAsync(innerCt);
+            var missing = ids.Except(students.Where(s => current.CanAccessCampus(s.CampusId)).Select(s => s.Id)).ToList();
+            if (missing.Count > 0) throw new NotFoundException("Student", missing[0]);
+
+            var moving = students.Where(s => s.CurrentSectionId != target.Id).ToList();
+            foreach (var student in moving)
+            {
+                Guard.Against(!student.IsCurrent, "student.not_current", $"{student.FullName} is not a current student.");
+            }
+
+            await EnsureCapacityAsync(target, request.OverrideCapacity, innerCt, moving.Count);
+            var placements = moving.Select(student => (Student: student, Active: student.Enrollments
+                    .SingleOrDefault(e => e.Status == EnrollmentStatus.Active && e.AcademicYearId == target.AcademicYearId)
+                ?? throw new DomainException("student.no_enrollment", $"{student.FullName} has no placement in {target.AcademicYear.Name}.")))
+                .ToList();
+            foreach (var (_, active) in placements)
+            {
+                active.Close(EnrollmentStatus.Transferred, request.EffectiveDate.AddDays(-1), Clean(request.Reason) ?? "Section change");
+            }
+
+            await db.SaveChangesAsync(innerCt);
+            foreach (var (student, active) in placements)
+            {
+                db.Enrollments.Add(new Enrollment(current.SchoolId, student.Id, target.AcademicYearId, target.CampusId, target.GradeId, target.Id,
+                    request.EffectiveDate, active.RollNumber));
+                student.CurrentSectionId = target.Id;
+                student.CampusId = target.CampusId;
+            }
+
+            await db.SaveChangesAsync(innerCt);
+            return placements.Count;
+        }, ct: ct);
+        return new BulkResult(moved);
+    }
+
     /// <summary>Deletes a record created in error. Refused (by foreign keys) once other modules hold data about the student.</summary>
     public async Task DeleteAsync(Guid id, CancellationToken ct)
     {
@@ -412,13 +467,17 @@ public sealed class StudentService(IAppDbContext db, IAccessContext access, ISeq
         return section;
     }
 
-    private async Task EnsureCapacityAsync(Section section, bool overrideCapacity, CancellationToken ct)
+    private async Task EnsureCapacityAsync(Section section, bool overrideCapacity, CancellationToken ct, int incoming = 1)
     {
         if (overrideCapacity) return;
+        // Serialise placements into the section for the rest of the transaction, so two people can't both take the last seat.
+        await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM sections WHERE id = {section.Id} FOR UPDATE", ct);
         var enrolled = await db.Enrollments.CountAsync(e => e.SectionId == section.Id && e.Status == EnrollmentStatus.Active, ct);
-        if (enrolled >= section.Capacity)
+        if (enrolled + incoming > section.Capacity)
         {
-            throw new ConflictException("section.full", $"This section is full ({enrolled} of {section.Capacity} seats). Choose another section or confirm to exceed capacity.");
+            throw new ConflictException("section.full", incoming == 1
+                ? $"This section is full ({enrolled} of {section.Capacity} seats). Choose another section or confirm to exceed capacity."
+                : $"{enrolled} of {section.Capacity} seats are taken, so {incoming} more would exceed capacity. Choose another section or confirm to exceed it.");
         }
     }
 

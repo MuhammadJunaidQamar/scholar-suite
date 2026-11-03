@@ -34,6 +34,8 @@ internal static class StudentEndpoints
             })
             .RequirePermission(Permissions.Students.Import).DisableAntiforgery()
             .WithSummary("Validate (commit=false) or import (commit=true) a CSV of students. All rows or none.");
+        students.MapPost("/bulk/transfer", (BulkTransferRequest r, StudentService s, CancellationToken ct) => s.BulkTransferAsync(r, ct))
+            .RequirePermission(Permissions.Students.Update).WithSummary("Move several students into one section, all or none.");
         students.MapGet("/{id:guid}", (Guid id, StudentService s, CancellationToken ct) => s.GetAsync(id, ct)).RequirePermission(Permissions.Students.View);
         students.MapPost("/", async (CreateStudentRequest r, StudentService s, CancellationToken ct) =>
         {

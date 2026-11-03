@@ -115,6 +115,42 @@ public sealed class StudentAndAdmissionTests(ApiFactory factory) : IntegrationTe
     }
 
     [Fact]
+    public async Task Bulk_section_moves_check_capacity_for_the_group_and_are_all_or_nothing()
+    {
+        var (_, s, owner) = await SetupAsync(capacity: 3);
+        using var _ = owner;
+        var ids = new List<Guid>();
+        foreach (var (first, phone) in new[] { ("Ayesha", "0300 1111111"), ("Hamza", "0300 2222222"), ("Zainab", "0300 3333333") })
+        {
+            ids.Add((await (await owner.PostAsync("/api/students", NewStudent(s.SectionA, first: first, phone: phone))).ReadJsonAsync<StudentDetailDto>()).Id);
+        }
+
+        await (await owner.PostAsync("/api/students", NewStudent(s.SectionB, first: "Bilal", phone: "0300 4444444"))).EnsureSuccessWithBodyAsync();
+
+        // Section B has 1 of 3 seats taken: moving all three would need 4.
+        var tooMany = await owner.PostAsync("/api/students/bulk/transfer",
+            new { studentIds = ids, sectionId = s.SectionB, effectiveDate = new DateOnly(2026, 9, 1), reason = "Re-sectioning" });
+        Assert.Equal("section.full", await tooMany.ProblemCodeAsync());
+        var unchanged = await owner.GetJsonAsync<PagedResult<StudentListItemDto>>($"/api/students?sectionId={s.SectionA}");
+        Assert.Equal(3, unchanged.Total);
+
+        var moved = await (await owner.PostAsync("/api/students/bulk/transfer",
+            new { studentIds = ids.Take(2), sectionId = s.SectionB, effectiveDate = new DateOnly(2026, 9, 1), reason = "Re-sectioning" }))
+            .ReadJsonAsync<BulkResult>();
+        Assert.Equal(2, moved.Affected);
+        var detail = await owner.GetJsonAsync<StudentDetailDto>($"/api/students/{ids[0]}");
+        Assert.Equal("Class 5 – B", detail.CurrentEnrollment!.ClassName);
+        Assert.Contains(detail.Enrollments, e => e.Status == Domain.Students.EnrollmentStatus.Transferred && e.Reason == "Re-sectioning");
+
+        // Exporting a selection returns exactly those students.
+        var csv = await (await owner.GetAsync($"/api/students/export?ids={ids[0]}&ids={ids[2]}")).Content.ReadAsStringAsync();
+        var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(3, lines.Length);
+        Assert.Contains(lines, l => l.Contains("Ayesha", StringComparison.Ordinal));
+        Assert.Contains(lines, l => l.Contains("Zainab", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Full_sections_refuse_students_unless_overridden()
     {
         var (_, s, owner) = await SetupAsync(capacity: 1);

@@ -14,6 +14,8 @@ public sealed record StudentQuery : PageQuery
     public Gender? Gender { get; init; }
     /// <summary>"current" (default: active + suspended), "left" (withdrawn, transferred, graduated, alumni) or "all".</summary>
     public string? Scope { get; init; }
+    /// <summary>An explicit selection (repeat <c>ids=</c>); overrides the scope and status filters.</summary>
+    public Guid[]? Ids { get; init; }
 }
 
 public sealed record StudentListItemDto(Guid Id, string AdmissionNumber, string FullName, Gender Gender, DateOnly DateOfBirth,
@@ -69,6 +71,11 @@ public sealed record UpdateStudentRequest(StudentDetailsInput Student, uint Vers
 public sealed record ChangeStudentStatusRequest(StudentStatus Status, DateOnly EffectiveDate, string? Reason, string? DestinationSchool);
 
 public sealed record TransferSectionRequest(Guid SectionId, DateOnly EffectiveDate, string? Reason, bool OverrideCapacity = false);
+
+public sealed record BulkTransferRequest(IReadOnlyList<Guid> StudentIds, Guid SectionId, DateOnly EffectiveDate, string? Reason,
+    bool OverrideCapacity = false);
+
+public sealed record BulkResult(int Affected);
 
 public sealed record UpdateGuardianLinkRequest(
     GuardianRelationship Relationship, bool IsPrimary, bool IsFeePayer, bool IsEmergencyContact, bool LivesWithStudent, bool CanPickUp,
@@ -142,6 +149,17 @@ public sealed class CreateStudentValidator : AbstractValidator<CreateStudentRequ
 public sealed class UpdateStudentValidator : AbstractValidator<UpdateStudentRequest>
 {
     public UpdateStudentValidator() => RuleFor(x => x.Student).NotNull().SetValidator(new StudentDetailsValidator());
+}
+
+public sealed class BulkTransferValidator : AbstractValidator<BulkTransferRequest>
+{
+    public BulkTransferValidator()
+    {
+        RuleFor(x => x.StudentIds).NotEmpty().WithMessage("Select at least one student.")
+            .Must(ids => ids.Count <= 200).WithMessage("Move at most 200 students at a time.");
+        RuleFor(x => x.SectionId).NotEmpty();
+        RuleFor(x => x.Reason).MaximumLength(500);
+    }
 }
 
 public sealed class ChangeStudentStatusValidator : AbstractValidator<ChangeStudentStatusRequest>
