@@ -54,7 +54,10 @@ public sealed class GuardianService(
     IAppDbContext db,
     IAccessContext access,
     UserManager<User> users,
-    AccountOnboarding onboarding)
+    AccountOnboarding onboarding,
+    AuthService auth,
+    ICurrentUser currentUser,
+    TimeProvider clock)
 {
     public async Task<PagedResult<GuardianListItemDto>> ListAsync(GuardianQuery query, CancellationToken ct)
     {
@@ -213,6 +216,33 @@ public sealed class GuardianService(
         }
 
         return new PortalAccessResult(user.Email ?? user.UserName!, handover);
+    }
+
+    /// <summary>
+    /// Issues a new one-time portal password for a parent who can't sign in, and signs them out everywhere. Only for
+    /// family-portal accounts: a login also used for staff work or at another school is reset from Users (or by its
+    /// owner), so the front office can never take over a staff account this way.
+    /// </summary>
+    public async Task<AccountHandover> ResetPortalPasswordAsync(Guid id, CancellationToken ct)
+    {
+        await access.RequireAsync(Permissions.Guardians.ManagePortal, ct);
+        var current = await access.GetAsync(ct);
+        var guardian = await Visible(current).SingleOrDefaultAsync(g => g.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
+        Guard.Against(guardian.UserId is null, "guardian.no_portal", "This guardian has no family-portal login yet.");
+        var user = await db.Users.SingleAsync(u => u.Id == guardian.UserId, ct);
+        var guardianRoleId = await db.Roles.Where(r => r.Key == SystemRoles.Guardian).Select(r => r.Id).SingleAsync(ct);
+        var staffToo = await db.UserRoles.AnyAsync(r => r.UserId == user.Id && r.RoleId != guardianRoleId, ct);
+        var elsewhere = await db.SchoolMemberships.IgnoreQueryFilters().AnyAsync(m => m.UserId == user.Id && m.SchoolId != current.SchoolId, ct);
+        Guard.Against(user.IsPlatformAdmin || staffToo || elsewhere, "guardian.shared_account",
+            "This login is also used for staff work or at another school, so it is reset from Users, or by its owner from the sign-in page.");
+
+        var handover = await onboarding.ResetToTemporaryPasswordAsync(user, ct);
+        await auth.RevokeAllSessionsAsync(user.Id, null, "portal_password_reset", ct);
+        db.AuditLogs.Add(new Domain.Auditing.AuditLog(current.SchoolId, currentUser.UserId, "guardian.portal_password_reset", "Guardian",
+            id.ToString(), null, clock.GetUtcNow(), currentUser.IpAddress, currentUser.UserAgent));
+        await db.SaveChangesAsync(ct);
+        access.Invalidate(user.Id);
+        return handover;
     }
 
     private async Task<string> UniqueUserNameAsync(Guardian guardian, CancellationToken ct)

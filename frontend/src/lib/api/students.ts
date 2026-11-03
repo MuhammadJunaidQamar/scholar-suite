@@ -557,6 +557,15 @@ export function useEnablePortal() {
   });
 }
 
+/** Issues a new one-time family-portal password (shown once) and signs the parent out everywhere. */
+export function useResetPortalPassword() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: (id: string) => api.post<AccountHandover>(`/guardians/${id}/portal/reset`),
+    onSuccess: () => invalidate(guardianKeys.all),
+  });
+}
+
 // ───────── Search ─────────
 
 export const useSearch = (term: string) =>

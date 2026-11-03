@@ -118,5 +118,33 @@ public sealed class OnboardingTests(ApiFactory factory) : IntegrationTest(factor
 
         var again = await owner.PostAsync($"/api/guardians/{guardian.Id}/portal", new { });
         Assert.Equal("guardian.portal_exists", await again.ProblemCodeAsync());
+
+        // A parent who forgets the password gets a new one-time password from the office and is signed out.
+        var reset = await (await owner.PostAsync($"/api/guardians/{guardian.Id}/portal/reset", new { })).ReadJsonAsync<AccountHandover>();
+        Assert.NotEqual(handover.TemporaryPassword, reset.TemporaryPassword);
+        Assert.Equal(System.Net.HttpStatusCode.Unauthorized, (await parent.GetAsync("/api/auth/me")).StatusCode);
+        using var later = Factory.CreateBrowserClient();
+        await later.LoginAsync(access.LoginName, reset.TemporaryPassword!);
+    }
+
+    [Fact]
+    public async Task The_front_office_cannot_reset_a_staff_login_through_the_family_portal()
+    {
+        var school = await Factory.ProvisionSchoolAsync();
+        var (_, teacherEmail) = await Factory.AddMemberAsync(school, SystemRoles.Teacher);
+        using var owner = Factory.CreateBrowserClient();
+        await owner.LoginAsync(school.Email, TestData.Password);
+        // The teacher is also a parent here, with the same e-mail, so the portal reuses their staff login.
+        var guardian = await (await owner.PostAsync("/api/guardians", new
+        {
+            firstName = "Nadia", lastName = "Teacher", phone = "0301 5556667", email = teacherEmail, notifyBySms = true, notifyByEmail = true, notifyByWhatsApp = false,
+        })).ReadJsonAsync<GuardianDetailDto>();
+        var access = await (await owner.PostAsync($"/api/guardians/{guardian.Id}/portal", new { })).ReadJsonAsync<PortalAccessResult>();
+        Assert.Null(access.Handover); // existing account: nothing to hand over
+
+        var refused = await owner.PostAsync($"/api/guardians/{guardian.Id}/portal/reset", new { });
+        Assert.Equal("guardian.shared_account", await refused.ProblemCodeAsync());
+        using var teacher = Factory.CreateBrowserClient();
+        await teacher.LoginAsync(teacherEmail, TestData.Password); // unchanged
     }
 }

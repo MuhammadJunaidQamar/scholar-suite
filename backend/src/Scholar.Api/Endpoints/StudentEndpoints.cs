@@ -88,6 +88,9 @@ internal static class StudentEndpoints
         }).RequirePermission(Permissions.Guardians.Delete);
         guardians.MapPost("/{id:guid}/portal", (Guid id, GuardianService s, CancellationToken ct) => s.EnablePortalAsync(id, ct))
             .RequirePermission(Permissions.Guardians.ManagePortal).WithSummary("Create a family-portal login for the guardian.");
+        guardians.MapPost("/{id:guid}/portal/reset", (Guid id, GuardianService s, CancellationToken ct) => s.ResetPortalPasswordAsync(id, ct))
+            .RequirePermission(Permissions.Guardians.ManagePortal)
+            .WithSummary("Issue a new one-time family-portal password (shown once) and sign the parent out everywhere.");
 
         var files = api.MapGroup("/files").WithTags("Files");
         files.MapGet("/{id:guid}/content", async (Guid id, bool? download, FileService f, HttpContext http, CancellationToken ct) =>
