@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Scholar.Application.Abstractions;
 using Scholar.Domain.Access;
 using Scholar.Domain.Admissions;
+using Scholar.Domain.Attendance;
+using Scholar.Domain.Communication;
 using Scholar.Domain.Documents;
 using Scholar.Domain.Auditing;
 using Scholar.Domain.Common;
@@ -66,6 +68,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ITenant
     public DbSet<ApplicationAssessment> ApplicationAssessments => Set<ApplicationAssessment>();
     public DbSet<StaffMember> Staff => Set<StaffMember>();
     public DbSet<SectionSubjectTeacher> SectionSubjectTeachers => Set<SectionSubjectTeacher>();
+    public DbSet<AttendanceRegister> AttendanceRegisters => Set<AttendanceRegister>();
+    public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
+    public DbSet<AttendanceCorrection> AttendanceCorrections => Set<AttendanceCorrection>();
+    public DbSet<AttendanceCorrectionItem> AttendanceCorrectionItems => Set<AttendanceCorrectionItem>();
+    public DbSet<StudentLeaveRequest> StudentLeaveRequests => Set<StudentLeaveRequest>();
+    public DbSet<BellSchedule> BellSchedules => Set<BellSchedule>();
+    public DbSet<BellPeriod> BellPeriods => Set<BellPeriod>();
+    public DbSet<StaffAttendanceRecord> StaffAttendanceRecords => Set<StaffAttendanceRecord>();
+    public DbSet<StaffAttendanceCorrection> StaffAttendanceCorrections => Set<StaffAttendanceCorrection>();
+    public DbSet<LeaveType> LeaveTypes => Set<LeaveType>();
+    public DbSet<StaffLeaveRequest> StaffLeaveRequests => Set<StaffLeaveRequest>();
+    public DbSet<OutboundMessage> OutboundMessages => Set<OutboundMessage>();
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     public async Task<T> InTransactionAsync<T>(Func<CancellationToken, Task<T>> work,

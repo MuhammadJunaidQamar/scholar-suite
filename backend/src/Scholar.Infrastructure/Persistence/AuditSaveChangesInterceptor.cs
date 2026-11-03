@@ -80,7 +80,8 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, ITenan
                 }
             }
 
-            if (entry.Entity is IHasAuditTrail && BuildAudit(entry, now, userId) is { } audit)
+            if (entry.Entity is IHasAuditTrail && !(entry is { Entity: IAuditChangesOnly, State: EntityState.Added })
+                && BuildAudit(entry, now, userId) is { } audit)
             {
                 audits.Add(audit);
             }

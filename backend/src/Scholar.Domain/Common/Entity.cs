@@ -31,6 +31,12 @@ public interface ISoftDeletable
 /// <summary>Marker: field-level changes to this entity are written to the audit log.</summary>
 public interface IHasAuditTrail;
 
+/// <summary>
+/// Marker for high-volume rows (attendance marks): only changes and deletions are audited, not creation, which the
+/// parent record already captures (the register's own audit entry says who took it and when).
+/// </summary>
+public interface IAuditChangesOnly : IHasAuditTrail;
+
 /// <summary>Entities that use PostgreSQL's <c>xmin</c> system column for optimistic concurrency.</summary>
 public interface IConcurrencyVersioned
 {

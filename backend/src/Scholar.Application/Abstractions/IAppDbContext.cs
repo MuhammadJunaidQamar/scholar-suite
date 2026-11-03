@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Scholar.Domain.Access;
 using Scholar.Domain.Admissions;
+using Scholar.Domain.Attendance;
+using Scholar.Domain.Communication;
 using Scholar.Domain.Documents;
 using Scholar.Domain.Auditing;
 using Scholar.Domain.Identity;
@@ -69,6 +71,22 @@ public interface IAppDbContext
     // Staff
     DbSet<StaffMember> Staff { get; }
     DbSet<SectionSubjectTeacher> SectionSubjectTeachers { get; }
+
+    // Attendance & leave
+    DbSet<AttendanceRegister> AttendanceRegisters { get; }
+    DbSet<AttendanceRecord> AttendanceRecords { get; }
+    DbSet<AttendanceCorrection> AttendanceCorrections { get; }
+    DbSet<AttendanceCorrectionItem> AttendanceCorrectionItems { get; }
+    DbSet<StudentLeaveRequest> StudentLeaveRequests { get; }
+    DbSet<BellSchedule> BellSchedules { get; }
+    DbSet<BellPeriod> BellPeriods { get; }
+    DbSet<StaffAttendanceRecord> StaffAttendanceRecords { get; }
+    DbSet<StaffAttendanceCorrection> StaffAttendanceCorrections { get; }
+    DbSet<LeaveType> LeaveTypes { get; }
+    DbSet<StaffLeaveRequest> StaffLeaveRequests { get; }
+
+    // Communication
+    DbSet<OutboundMessage> OutboundMessages { get; }
 
     DatabaseFacade Database { get; }
 

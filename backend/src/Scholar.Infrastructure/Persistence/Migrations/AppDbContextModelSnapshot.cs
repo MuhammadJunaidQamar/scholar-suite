@@ -786,6 +786,884 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                     b.ToTable("application_status_changes", (string)null);
                 });
 
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceCorrection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("DecisionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("decision_note");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attendance_corrections");
+
+                    b.HasIndex("RegisterId")
+                        .HasDatabaseName("ix_attendance_corrections_register_id");
+
+                    b.HasIndex("SchoolId", "Status")
+                        .HasDatabaseName("ix_attendance_corrections_school_id_status");
+
+                    b.ToTable("attendance_corrections", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceCorrectionItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CorrectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("correction_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("FromStatus")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("from_status");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("remark");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("to_status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attendance_correction_items");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_attendance_correction_items_school_id");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_attendance_correction_items_student_id");
+
+                    b.HasIndex("CorrectionId", "StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_attendance_correction_items_correction_id_student_id");
+
+                    b.ToTable("attendance_correction_items", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<TimeOnly?>("ArrivedAt")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("arrived_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid?>("LeaveRequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("leave_request_id");
+
+                    b.Property<Guid>("RegisterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("register_id");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("remark");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attendance_records");
+
+                    b.HasIndex("LeaveRequestId")
+                        .HasDatabaseName("ix_attendance_records_leave_request_id");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_attendance_records_school_id");
+
+                    b.HasIndex("RegisterId", "StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_attendance_records_register_id_student_id");
+
+                    b.HasIndex("StudentId", "Status")
+                        .HasDatabaseName("ix_attendance_records_student_id_status");
+
+                    b.ToTable("attendance_records", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceRegister", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AcademicYearId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("academic_year_id");
+
+                    b.Property<Guid>("CampusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("campus_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("note");
+
+                    b.Property<int?>("Period")
+                        .HasColumnType("integer")
+                        .HasColumnName("period");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<Guid?>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<Guid?>("TakenByStaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("taken_by_staff_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attendance_registers");
+
+                    b.HasIndex("AcademicYearId")
+                        .HasDatabaseName("ix_attendance_registers_academic_year_id");
+
+                    b.HasIndex("CampusId")
+                        .HasDatabaseName("ix_attendance_registers_campus_id");
+
+                    b.HasIndex("SubjectId")
+                        .HasDatabaseName("ix_attendance_registers_subject_id");
+
+                    b.HasIndex("TakenByStaffId")
+                        .HasDatabaseName("ix_attendance_registers_taken_by_staff_id");
+
+                    b.HasIndex("SchoolId", "Date", "CampusId")
+                        .HasDatabaseName("ix_attendance_registers_school_id_date_campus_id");
+
+                    b.HasIndex(new[] { "SectionId", "Date" }, "ux_attendance_registers_daily")
+                        .IsUnique()
+                        .HasDatabaseName("ix_attendance_registers_section_id_date")
+                        .HasFilter("period IS NULL");
+
+                    b.HasIndex(new[] { "SectionId", "Date", "Period" }, "ux_attendance_registers_period")
+                        .IsUnique()
+                        .HasDatabaseName("ix_attendance_registers_section_id_date_period")
+                        .HasFilter("period IS NOT NULL");
+
+                    b.ToTable("attendance_registers", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_attendance_registers_period", "period IS NULL OR period BETWEEN 1 AND 16");
+                        });
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.BellPeriod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("end_time");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("schedule_id");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer")
+                        .HasColumnName("sequence");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("start_time");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bell_periods");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_bell_periods_school_id");
+
+                    b.HasIndex("ScheduleId", "Sequence")
+                        .HasDatabaseName("ix_bell_periods_schedule_id_sequence");
+
+                    b.ToTable("bell_periods", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_bell_periods_times", "end_time > start_time");
+                        });
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.BellSchedule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CampusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("campus_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_bell_schedules");
+
+                    b.HasIndex("CampusId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_bell_schedules_campus_id");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_bell_schedules_school_id");
+
+                    b.ToTable("bell_schedules", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.LeaveType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("AnnualDays")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)")
+                        .HasColumnName("annual_days");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_paid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<bool>("RequiresDocument")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requires_document");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_leave_types");
+
+                    b.HasIndex("SchoolId", "Code")
+                        .IsUnique()
+                        .HasDatabaseName("ix_leave_types_school_id_code");
+
+                    b.ToTable("leave_types", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_leave_types_days", "annual_days IS NULL OR annual_days >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.StaffAttendanceCorrection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<TimeOnly?>("CheckIn")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("check_in");
+
+                    b.Property<TimeOnly?>("CheckOut")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("check_out");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("DecisionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("decision_note");
+
+                    b.Property<string>("FromStatus")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("from_status");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<bool>("RequestedBySelf")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requested_by_self");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("to_status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_staff_attendance_corrections");
+
+                    b.HasIndex("SchoolId", "Status")
+                        .HasDatabaseName("ix_staff_attendance_corrections_school_id_status");
+
+                    b.HasIndex("StaffId", "Date")
+                        .HasDatabaseName("ix_staff_attendance_corrections_staff_id_date");
+
+                    b.ToTable("staff_attendance_corrections", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.StaffAttendanceRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CampusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("campus_id");
+
+                    b.Property<TimeOnly?>("CheckIn")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("check_in");
+
+                    b.Property<TimeOnly?>("CheckOut")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("check_out");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("date");
+
+                    b.Property<Guid?>("LeaveRequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("leave_request_id");
+
+                    b.Property<string>("Remark")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("remark");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_staff_attendance_records");
+
+                    b.HasIndex("CampusId")
+                        .HasDatabaseName("ix_staff_attendance_records_campus_id");
+
+                    b.HasIndex("LeaveRequestId")
+                        .HasDatabaseName("ix_staff_attendance_records_leave_request_id");
+
+                    b.HasIndex("StaffId", "Date")
+                        .IsUnique()
+                        .HasDatabaseName("ix_staff_attendance_records_staff_id_date");
+
+                    b.HasIndex("SchoolId", "Date", "CampusId")
+                        .HasDatabaseName("ix_staff_attendance_records_school_id_date_campus_id");
+
+                    b.ToTable("staff_attendance_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_staff_attendance_records_times", "check_in IS NULL OR check_out IS NULL OR check_out > check_in");
+                        });
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.StaffLeaveRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<decimal>("Days")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)")
+                        .HasColumnName("days");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("DecisionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("decision_note");
+
+                    b.Property<Guid?>("DocumentFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_file_id");
+
+                    b.Property<DateOnly>("FromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("from_date");
+
+                    b.Property<bool>("HalfDay")
+                        .HasColumnType("boolean")
+                        .HasColumnName("half_day");
+
+                    b.Property<Guid>("LeaveTypeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("leave_type_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<bool>("RequestedBySelf")
+                        .HasColumnType("boolean")
+                        .HasColumnName("requested_by_self");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<DateOnly>("ToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("to_date");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_staff_leave_requests");
+
+                    b.HasIndex("DocumentFileId")
+                        .HasDatabaseName("ix_staff_leave_requests_document_file_id");
+
+                    b.HasIndex("LeaveTypeId")
+                        .HasDatabaseName("ix_staff_leave_requests_leave_type_id");
+
+                    b.HasIndex("SchoolId", "Status")
+                        .HasDatabaseName("ix_staff_leave_requests_school_id_status");
+
+                    b.HasIndex("StaffId", "FromDate")
+                        .HasDatabaseName("ix_staff_leave_requests_staff_id_from_date");
+
+                    b.ToTable("staff_leave_requests", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_staff_leave_requests_dates", "to_date >= from_date");
+
+                            t.HasCheckConstraint("ck_staff_leave_requests_days", "days > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.StudentLeaveRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("DecisionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("decision_note");
+
+                    b.Property<Guid?>("DocumentFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("document_file_id");
+
+                    b.Property<DateOnly>("FromDate")
+                        .HasColumnType("date")
+                        .HasColumnName("from_date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("RequestedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("requested_by");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateOnly>("ToDate")
+                        .HasColumnType("date")
+                        .HasColumnName("to_date");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_student_leave_requests");
+
+                    b.HasIndex("DocumentFileId")
+                        .HasDatabaseName("ix_student_leave_requests_document_file_id");
+
+                    b.HasIndex("SchoolId", "Status")
+                        .HasDatabaseName("ix_student_leave_requests_school_id_status");
+
+                    b.HasIndex("StudentId", "FromDate")
+                        .HasDatabaseName("ix_student_leave_requests_student_id_from_date");
+
+                    b.ToTable("student_leave_requests", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_student_leave_requests_dates", "to_date >= from_date");
+                        });
+                });
+
             modelBuilder.Entity("Scholar.Domain.Auditing.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -849,6 +1727,137 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_audit_logs_school_id_entity_type_entity_id");
 
                     b.ToTable("audit_logs", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Communication.OutboundMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("body");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("channel");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DedupKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("dedup_key");
+
+                    b.Property<Guid?>("GuardianId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guardian_id");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("ProviderMessageId")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("provider_message_id");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("purpose");
+
+                    b.Property<string>("Recipient")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("recipient");
+
+                    b.Property<string>("RecipientName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("recipient_name");
+
+                    b.Property<Guid?>("RelatedId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_id");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid?>("StaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("StatusChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("status_changed_at");
+
+                    b.Property<string>("StatusDetail")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("status_detail");
+
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("subject");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outbound_messages");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_outbound_messages_pending")
+                        .HasFilter("status = 'Pending'");
+
+                    b.HasIndex("SchoolId", "DedupKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_outbound_messages_school_id_dedup_key");
+
+                    b.HasIndex("SchoolId", "RelatedId")
+                        .HasDatabaseName("ix_outbound_messages_school_id_related_id");
+
+                    b.HasIndex("SchoolId", "StudentId", "CreatedAt")
+                        .HasDatabaseName("ix_outbound_messages_school_id_student_id_created_at");
+
+                    b.ToTable("outbound_messages", (string)null);
                 });
 
             modelBuilder.Entity("Scholar.Domain.Documents.StoredFile", b =>
@@ -3801,6 +4810,276 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_application_status_changes_schools_school_id");
                 });
 
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceCorrection", b =>
+                {
+                    b.HasOne("Scholar.Domain.Attendance.AttendanceRegister", null)
+                        .WithMany()
+                        .HasForeignKey("RegisterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_corrections_attendance_registers_register_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_corrections_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceCorrectionItem", b =>
+                {
+                    b.HasOne("Scholar.Domain.Attendance.AttendanceCorrection", null)
+                        .WithMany("Items")
+                        .HasForeignKey("CorrectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_correction_items_attendance_corrections_correcti");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_correction_items_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_correction_items_students_student_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceRecord", b =>
+                {
+                    b.HasOne("Scholar.Domain.Attendance.StudentLeaveRequest", null)
+                        .WithMany()
+                        .HasForeignKey("LeaveRequestId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_attendance_records_student_leave_requests_leave_request_id");
+
+                    b.HasOne("Scholar.Domain.Attendance.AttendanceRegister", "Register")
+                        .WithMany("Records")
+                        .HasForeignKey("RegisterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_records_attendance_registers_register_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_records_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_records_students_student_id");
+
+                    b.Navigation("Register");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceRegister", b =>
+                {
+                    b.HasOne("Scholar.Domain.Organization.AcademicYear", null)
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_registers_academic_years_academic_year_id");
+
+                    b.HasOne("Scholar.Domain.Platform.Campus", null)
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_registers_campuses_campus_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_registers_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Section", null)
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_attendance_registers_sections_section_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Subject", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_attendance_registers_subjects_subject_id");
+
+                    b.HasOne("Scholar.Domain.Staffing.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("TakenByStaffId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_attendance_registers_staff_taken_by_staff_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.BellPeriod", b =>
+                {
+                    b.HasOne("Scholar.Domain.Attendance.BellSchedule", null)
+                        .WithMany("Periods")
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bell_periods_bell_schedules_schedule_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bell_periods_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.BellSchedule", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.Campus", null)
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_bell_schedules_campuses_campus_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bell_schedules_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.LeaveType", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_leave_types_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.StaffAttendanceCorrection", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_attendance_corrections_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Staffing.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_attendance_corrections_staff_staff_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.StaffAttendanceRecord", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.Campus", null)
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_attendance_records_campuses_campus_id");
+
+                    b.HasOne("Scholar.Domain.Attendance.StaffLeaveRequest", null)
+                        .WithMany()
+                        .HasForeignKey("LeaveRequestId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_staff_attendance_records_staff_leave_requests_leave_request");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_attendance_records_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Staffing.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_attendance_records_staff_staff_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.StaffLeaveRequest", b =>
+                {
+                    b.HasOne("Scholar.Domain.Documents.StoredFile", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentFileId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_staff_leave_requests_stored_files_document_file_id");
+
+                    b.HasOne("Scholar.Domain.Attendance.LeaveType", null)
+                        .WithMany()
+                        .HasForeignKey("LeaveTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_leave_requests_leave_types_leave_type_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_leave_requests_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Staffing.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_leave_requests_staff_staff_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.StudentLeaveRequest", b =>
+                {
+                    b.HasOne("Scholar.Domain.Documents.StoredFile", null)
+                        .WithMany()
+                        .HasForeignKey("DocumentFileId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_student_leave_requests_stored_files_document_file_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_leave_requests_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_leave_requests_students_student_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Communication.OutboundMessage", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_outbound_messages_schools_school_id");
+                });
+
             modelBuilder.Entity("Scholar.Domain.Documents.StoredFile", b =>
                 {
                     b.HasOne("Scholar.Domain.Platform.School", null)
@@ -4396,6 +5675,21 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                     b.Navigation("Assessments");
 
                     b.Navigation("History");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceCorrection", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.AttendanceRegister", b =>
+                {
+                    b.Navigation("Records");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Attendance.BellSchedule", b =>
+                {
+                    b.Navigation("Periods");
                 });
 
             modelBuilder.Entity("Scholar.Domain.Identity.User", b =>
