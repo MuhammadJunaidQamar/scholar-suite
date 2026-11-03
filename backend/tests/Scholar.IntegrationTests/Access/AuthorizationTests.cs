@@ -158,6 +158,23 @@ public sealed class AuthorizationTests(ApiFactory factory) : IntegrationTest(fac
     }
 
     [Fact]
+    public async Task Permissions_can_be_added_to_an_existing_role()
+    {
+        var school = await Factory.ProvisionSchoolAsync();
+        using var owner = await SignInAsync(school.Email);
+        var created = await (await owner.PostAsync("/api/access/roles",
+            new { name = "Office", portal = "Admin", permissions = new[] { Permissions.Students.View } })).ReadJsonAsync<RoleDetailDto>();
+
+        var grown = await (await owner.SendAsync(HttpMethod.Put, $"/api/access/roles/{created.Id}",
+            new { name = "Office", portal = "Admin", permissions = new[] { Permissions.Students.View, Permissions.Guardians.View, Permissions.Fees.View } }))
+            .ReadJsonAsync<RoleDetailDto>();
+
+        Assert.Equal(3, grown.Permissions.Count);
+        var reloaded = await owner.GetJsonAsync<RoleDetailDto>($"/api/access/roles/{created.Id}");
+        Assert.Equal(grown.Permissions, reloaded.Permissions);
+    }
+
+    [Fact]
     public async Task Only_platform_administrators_can_provision_schools()
     {
         var school = await Factory.ProvisionSchoolAsync();
