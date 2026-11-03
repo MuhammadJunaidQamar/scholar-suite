@@ -139,7 +139,9 @@ const sessionListeners = new Set<() => void>();
 /** Notified when the session cannot be recovered (the app redirects to sign-in). */
 export function onSessionExpired(listener: () => void) {
   sessionListeners.add(listener);
-  return () => sessionListeners.delete(listener);
+  return () => {
+    sessionListeners.delete(listener);
+  };
 }
 
 async function parseProblem(response: Response): Promise<ProblemDetails> {

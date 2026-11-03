@@ -8,7 +8,8 @@ export const controlBase = cn(
   "focus:outline-none focus:border-accent focus:shadow-[0_0_0_3px_color-mix(in_oklch,var(--accent)_16%,transparent)]",
   "aria-invalid:border-danger aria-invalid:focus:shadow-[0_0_0_3px_color-mix(in_oklch,var(--danger)_16%,transparent)]",
   "disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-2 disabled:opacity-80",
-  "read-only:bg-sunken",
+  // :read-only also matches <select>/<button>; only text controls get the read-only tint.
+  "[&:is(input,textarea):read-only]:bg-sunken",
 );
 
 export type InputProps = React.ComponentProps<"input"> & {

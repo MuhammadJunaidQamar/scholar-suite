@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  devIndicators: { position: "bottom-right" },
+  experimental: {
+    // Signed-in screens render in the browser behind the session gate, so only segments that opt in with
+    // `export const instant = true` are validated for instant navigation.
+    instantInsights: { validationLevel: "manual-warning" },
+  },
   turbopack: {
     rules: {
       "*.css": {
