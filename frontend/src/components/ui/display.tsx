@@ -92,14 +92,15 @@ export function Avatar({ name, src, size = 28, className, square, onImageError }
 export const Tabs = TabsPrimitive.Root;
 
 export function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
-  return <TabsPrimitive.List className={cn("flex gap-5 border-b border-line", className)} {...props} />;
+  // On phones a long tab row scrolls sideways instead of running off the edge.
+  return <TabsPrimitive.List className={cn("flex gap-5 border-b border-line max-sm:overflow-x-auto max-sm:overflow-y-hidden max-sm:[scrollbar-width:none]", className)} {...props} />;
 }
 
 export function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "relative -mb-px inline-flex h-9 items-center gap-1.5 border-b-2 border-transparent text-sm font-medium text-ink-2 transition-colors",
+        "relative -mb-px inline-flex h-9 shrink-0 items-center gap-1.5 border-b-2 border-transparent text-sm font-medium whitespace-nowrap text-ink-2 transition-colors",
         "hover:text-ink data-[state=active]:border-ink data-[state=active]:text-ink",
         className,
       )}

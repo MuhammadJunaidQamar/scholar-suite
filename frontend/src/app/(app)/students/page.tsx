@@ -60,7 +60,10 @@ function buildColumns(scope: StudentScope, multiCampus: boolean): ColumnDef<Stud
                 {s.status === "Suspended" && <StatusBadge tone="warning" variant="soft">Suspended</StatusBadge>}
                 {s.status === "Active" && s.admissionDate > todayIso() && <StatusBadge tone="info" variant="soft">Joins {formatDate(s.admissionDate)}</StatusBadge>}
               </span>
-              <span className="truncate font-mono text-xs text-ink-2">{s.admissionNumber}</span>
+              <span className="truncate text-xs text-ink-2">
+                <span className="font-mono">{s.admissionNumber}</span>
+                {s.className && <span className="sm:hidden"> · {s.className}</span>}
+              </span>
             </div>
           </div>
         );
@@ -69,7 +72,7 @@ function buildColumns(scope: StudentScope, multiCampus: boolean): ColumnDef<Stud
     {
       id: "class",
       header: scope === "left" ? "Last class" : "Class",
-      meta: { sortKey: "class", label: "Class" },
+      meta: { sortKey: "class", label: "Class", hideBelow: "sm", className: "whitespace-nowrap" },
       cell: ({ row }) =>
         row.original.sectionId ? (
           row.original.className

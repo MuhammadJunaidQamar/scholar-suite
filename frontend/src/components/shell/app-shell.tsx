@@ -12,7 +12,8 @@ import { CommandPalette } from "./command-palette";
 
 const COLLAPSE_KEY = "ss.sidebar.collapsed";
 
-function ShellSkeleton() {
+/** What a signed-in page looks like before the session (and the URL, on dynamic routes) is known. */
+export function ShellSkeleton() {
   return (
     <div className="flex min-h-dvh" aria-busy>
       <div className="hidden w-[248px] border-r border-line bg-sunken/80 p-3 md:block">
