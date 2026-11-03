@@ -186,6 +186,38 @@ public sealed class StudentAndAdmissionTests(ApiFactory factory) : IntegrationTe
     }
 
     [Fact]
+    public async Task Campus_scoped_staff_only_see_guardians_through_their_own_campuses_children()
+    {
+        var (school, s, owner) = await SetupAsync();
+        using var _ = owner;
+        var local = await (await owner.PostAsync("/api/students", NewStudent(s.SectionA, first: "Ayesha", last: "Khan", guardianFirst: "Tariq", phone: "0300 1110001")))
+            .ReadJsonAsync<StudentDetailDto>();
+        var away = await (await owner.PostAsync("/api/students", NewStudent(s.OtherCampusSection, first: "Zoya", last: "Ali", guardianFirst: "Zahid", phone: "0300 2220002")))
+            .ReadJsonAsync<StudentDetailDto>();
+        var zahid = away.Guardians[0].GuardianId;
+        var (_, registrar) = await Factory.AddMemberAsync(school, SystemRoles.Registrar, school.CampusId);
+        using var scoped = Factory.CreateBrowserClient();
+        await scoped.LoginAsync(registrar, TestData.Password);
+
+        var list = await scoped.GetJsonAsync<PagedResult<GuardianListItemDto>>("/api/guardians");
+        Assert.Equal(local.Guardians[0].GuardianId, Assert.Single(list.Items).Id);
+        Assert.Equal(HttpStatusCode.NotFound, (await scoped.GetAsync($"/api/guardians/{zahid}")).StatusCode);
+        var edit = await scoped.SendAsync(HttpMethod.Put, $"/api/guardians/{zahid}", new
+        {
+            firstName = "Hijacked", lastName = "Ali", phone = "0300 2220002", notifyBySms = true, notifyByEmail = false, notifyByWhatsApp = false,
+        });
+        Assert.Equal(HttpStatusCode.NotFound, edit.StatusCode);
+        var search = await scoped.GetJsonAsync<List<SearchResultDto>>("/api/search?q=Zahid");
+        Assert.DoesNotContain(search, r => r.Kind == "guardian");
+
+        // Looking up the number still finds the parent, so a sibling here is linked to the same record, but the
+        // child at the other campus is never named.
+        var match = Assert.Single(await scoped.GetJsonAsync<List<GuardianMatchDto>>("/api/guardians/lookup?phone=03002220002"));
+        Assert.Equal(zahid, match.Id);
+        Assert.Equal(["a child at another campus"], match.Children);
+    }
+
+    [Fact]
     public async Task Withdrawal_requires_a_reason_closes_the_placement_and_keeps_history()
     {
         var (_, s, owner) = await SetupAsync();

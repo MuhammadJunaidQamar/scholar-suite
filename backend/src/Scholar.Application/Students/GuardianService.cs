@@ -59,7 +59,10 @@ public sealed class GuardianService(
     public async Task<PagedResult<GuardianListItemDto>> ListAsync(GuardianQuery query, CancellationToken ct)
     {
         await access.RequireAsync(Permissions.Guardians.View, ct);
-        var guardians = db.Guardians.AsQueryable()
+        var current = await access.GetAsync(ct);
+        var all = current.AllCampuses;
+        var campuses = current.CampusIds?.ToList() ?? [];
+        var guardians = Visible(current)
             .WhereIf(query.HasPortalAccount == true, g => g.UserId != null)
             .WhereIf(query.HasPortalAccount == false, g => g.UserId == null);
         if (query.Term is { } term)
@@ -75,14 +78,18 @@ public sealed class GuardianService(
 
         var sorted = guardians.ApplySort(query, new SortMap<Guardian> { ["name"] = g => g.FullName, ["children"] = g => g.Students.Count }, "name");
         return await sorted.ToPagedAsync(query, g => new GuardianListItemDto(g.Id, g.FullName, g.Phone, g.Email, g.Occupation,
-            g.UserId != null, g.Students.Count, g.Students.Select(l => l.Student.FirstName).ToList()), ct);
+            g.UserId != null, g.Students.Count(l => all || campuses.Contains(l.Student.CampusId)),
+            g.Students.Where(l => all || campuses.Contains(l.Student.CampusId)).Select(l => l.Student.FirstName).ToList()), ct);
     }
 
     public async Task<GuardianDetailDto> GetAsync(Guid id, CancellationToken ct)
     {
         await access.RequireAsync(Permissions.Guardians.View, ct);
-        var g = await db.Guardians.SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
-        var children = await db.StudentGuardians.Where(l => l.GuardianId == id)
+        var current = await access.GetAsync(ct);
+        var g = await Visible(current).SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
+        var all = current.AllCampuses;
+        var campuses = current.CampusIds?.ToList() ?? [];
+        var children = await db.StudentGuardians.Where(l => l.GuardianId == id && (all || campuses.Contains(l.Student.CampusId)))
             .Select(l => new GuardianChildDto(l.StudentId, l.Id, l.Student.FullName, l.Student.AdmissionNumber,
                 db.Sections.Where(s => s.Id == l.Student.CurrentSectionId).Select(s => s.Grade.Name + " – " + s.Name).FirstOrDefault(),
                 l.Student.PhotoFileId, l.Student.Status, l.Relationship, l.IsPrimary, l.IsFeePayer, l.PortalAccess))
@@ -99,9 +106,21 @@ public sealed class GuardianService(
         await access.RequireAsync(Permissions.Guardians.View, ct);
         if (phone.Count(char.IsDigit) < 7) return [];
         var normalized = Guardian.NormalizePhone(phone);
-        return await db.Guardians.Where(g => g.Phone == normalized || g.AlternatePhone == normalized)
-            .Select(g => new GuardianMatchDto(g.Id, g.FullName, g.Phone, g.Email, g.Students.Select(l => l.Student.FullName).ToList()))
+        var current = await access.GetAsync(ct);
+        var all = current.AllCampuses;
+        var campuses = current.CampusIds?.ToList() ?? [];
+        // The whole school is searched, so a sibling at another campus is linked to the same parent instead of a
+        // duplicate; children the caller may not see are counted, never named.
+        var matches = await db.Guardians.Where(g => g.Phone == normalized || g.AlternatePhone == normalized)
+            .Select(g => new
+            {
+                g.Id, g.FullName, g.Phone, g.Email,
+                Visible = g.Students.Where(l => all || campuses.Contains(l.Student.CampusId)).Select(l => l.Student.FullName).ToList(),
+                Hidden = g.Students.Count(l => !all && !campuses.Contains(l.Student.CampusId)),
+            })
             .ToListAsync(ct);
+        return matches.Select(m => new GuardianMatchDto(m.Id, m.FullName, m.Phone, m.Email,
+            m.Hidden == 0 ? m.Visible : [.. m.Visible, m.Hidden == 1 ? "a child at another campus" : $"{m.Hidden} children at another campus"])).ToList();
     }
 
     public async Task<GuardianDetailDto> CreateAsync(SaveGuardianRequest request, CancellationToken ct)
@@ -118,7 +137,7 @@ public sealed class GuardianService(
     public async Task<GuardianDetailDto> UpdateAsync(Guid id, SaveGuardianRequest request, CancellationToken ct)
     {
         await access.RequireAsync(Permissions.Guardians.Update, ct);
-        var guardian = await db.Guardians.SingleOrDefaultAsync(g => g.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
+        var guardian = await Visible(await access.GetAsync(ct)).SingleOrDefaultAsync(g => g.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
         guardian.Rename(request.FirstName, request.LastName);
         guardian.SetPhone(request.Phone);
         Apply(guardian, request);
@@ -129,7 +148,7 @@ public sealed class GuardianService(
     public async Task DeleteAsync(Guid id, CancellationToken ct)
     {
         await access.RequireAsync(Permissions.Guardians.Delete, ct);
-        var guardian = await db.Guardians.SingleOrDefaultAsync(g => g.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
+        var guardian = await Visible(await access.GetAsync(ct)).SingleOrDefaultAsync(g => g.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
         Guard.Against(await db.StudentGuardians.AnyAsync(l => l.GuardianId == id, ct), "guardian.has_children",
             "Unlink this guardian from all students before deleting the record.");
         db.Guardians.Remove(guardian);
@@ -145,7 +164,7 @@ public sealed class GuardianService(
     {
         await access.RequireAsync(Permissions.Guardians.ManagePortal, ct);
         var current = await access.GetAsync(ct);
-        var guardian = await db.Guardians.SingleOrDefaultAsync(g => g.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
+        var guardian = await Visible(current).SingleOrDefaultAsync(g => g.Id == id, ct) ?? throw new NotFoundException("Guardian", id);
         Guard.Against(guardian.UserId is not null, "guardian.portal_exists", "This guardian already has a portal login.");
 
         var role = await db.Roles.SingleAsync(r => r.Key == SystemRoles.Guardian, ct);
@@ -209,6 +228,17 @@ public sealed class GuardianService(
         return candidate;
     }
 
+    /// <summary>
+    /// Guardians are school-wide records, but a campus-scoped user sees only those linked to a child on one of their
+    /// campuses (and guardians not yet linked to any child, which hold no student information).
+    /// </summary>
+    internal IQueryable<Guardian> Visible(EffectiveAccess current)
+    {
+        if (current.AllCampuses) return db.Guardians;
+        var campuses = current.CampusIds!;
+        return db.Guardians.Where(g => !g.Students.Any() || g.Students.Any(l => campuses.Contains(l.Student.CampusId)));
+    }
+
     private static void Apply(Guardian g, SaveGuardianRequest r)
     {
         g.AlternatePhone = string.IsNullOrWhiteSpace(r.AlternatePhone) ? null : Guardian.NormalizePhone(r.AlternatePhone);
@@ -255,7 +285,10 @@ public sealed class SearchService(IAppDbContext db, IAccessContext access)
 
         if (current.Has(Permissions.Guardians.View))
         {
-            results.AddRange(await db.Guardians
+            var guardians = current.AllCampuses
+                ? db.Guardians
+                : db.Guardians.Where(g => !g.Students.Any() || g.Students.Any(l => current.CampusIds!.Contains(l.Student.CampusId)));
+            results.AddRange(await guardians
                 .Where(g => EF.Functions.ILike(g.FullName, pattern) || (digits.Length >= 4 && g.Phone.Contains(phoneTail)))
                 .OrderBy(g => g.FullName).Take(4)
                 .Select(g => new SearchResultDto("guardian", g.Id, g.FullName, g.Phone, "/guardians/" + g.Id, null))
@@ -264,7 +297,10 @@ public sealed class SearchService(IAppDbContext db, IAccessContext access)
 
         if (current.Has(Permissions.Admissions.View))
         {
-            results.AddRange(await db.AdmissionApplications
+            var applications = current.AllCampuses
+                ? db.AdmissionApplications
+                : db.AdmissionApplications.Where(a => current.CampusIds!.Contains(a.CampusId));
+            results.AddRange(await applications
                 .Where(a => EF.Functions.ILike(a.FirstName + " " + a.LastName, pattern) || EF.Functions.ILike(a.ApplicationNumber, term + "%"))
                 .OrderByDescending(a => a.CreatedAt).Take(4)
                 .Select(a => new SearchResultDto("application", a.Id, a.FirstName + " " + a.LastName, a.ApplicationNumber + " · " + a.Status,
