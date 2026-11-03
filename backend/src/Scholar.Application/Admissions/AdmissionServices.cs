@@ -516,8 +516,19 @@ public sealed class PublicApplicationValidator : AbstractValidator<PublicApplica
 }
 
 /// <summary>Anonymous endpoints for the school's public application form (rate-limited; enters the school's tenant explicitly).</summary>
-public sealed class PublicAdmissionService(IAppDbContext db, ITenantContext tenant, AdmissionService admissions, TimeProvider clock)
+public sealed class PublicAdmissionService(IAppDbContext db, ITenantContext tenant, AdmissionService admissions, TimeProvider clock,
+    Documents.FileService files)
 {
+    /// <summary>The school's crest for the public form, or null when none is set.</summary>
+    public async Task<Documents.FileContent?> OpenLogoAsync(string code, CancellationToken ct)
+    {
+        var school = await FindSchoolAsync(code, ct);
+        using (tenant.Enter(school.Id))
+        {
+            return await files.OpenSchoolLogoAsync(school.Id, ct);
+        }
+    }
+
     public async Task<PublicSchoolDto> GetSchoolAsync(string code, CancellationToken ct)
     {
         var school = await FindSchoolAsync(code, ct);

@@ -109,9 +109,25 @@ public sealed class FileService(IAppDbContext db, IAccessContext access, IFileSt
         await AuthorizeAsync(ownerType, ownerId, FileCategories.Other, write: false, ct);
         var current = await access.GetAsync(ct);
         var canSeeMedical = current.HasAny(Permissions.Students.ViewMedical, Permissions.Welfare.ViewMedical);
+        // Ordered before projecting: the DTO's properties can't be translated to SQL.
         return await Project(db.StoredFiles.Where(f => f.OwnerType == ownerType && f.OwnerId == ownerId)
-                .Where(f => canSeeMedical || f.Sensitivity != FileSensitivity.Restricted))
-            .OrderByDescending(f => f.UploadedAt).ToListAsync(ct);
+                .Where(f => canSeeMedical || f.Sensitivity != FileSensitivity.Restricted)
+                .OrderByDescending(f => f.CreatedAt))
+            .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// The school's crest, which is public branding (shown on the online application form and printed documents).
+    /// Only the file currently set as the school's logo is served; every other file stays private. The caller enters
+    /// the school's tenant first.
+    /// </summary>
+    public async Task<FileContent?> OpenSchoolLogoAsync(Guid schoolId, CancellationToken ct)
+    {
+        var logoId = await db.Schools.Where(s => s.Id == schoolId).Select(s => s.LogoFileId).SingleOrDefaultAsync(ct);
+        if (logoId is null) return null;
+        var file = await db.StoredFiles.SingleOrDefaultAsync(f => f.Id == logoId && f.OwnerType == FileOwners.School && f.OwnerId == schoolId
+            && f.Category == FileCategories.Logo, ct);
+        return file is null ? null : new FileContent(await storage.OpenReadAsync(file.StorageKey, ct), file.ContentType, file.FileName);
     }
 
     public async Task<FileContent> OpenAsync(Guid id, CancellationToken ct)

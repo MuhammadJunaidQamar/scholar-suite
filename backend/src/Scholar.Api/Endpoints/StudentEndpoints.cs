@@ -164,6 +164,13 @@ internal static class StudentEndpoints
             .WithSummary("What a family needs to start an online application.");
         publicApi.MapPost("/applications", (string code, PublicApplicationRequest r, PublicAdmissionService s, CancellationToken ct) =>
             s.SubmitAsync(code, r, ct)).WithSummary("Submit an online admission application.");
+        publicApi.MapGet("/logo", async (string code, PublicAdmissionService s, HttpContext http, CancellationToken ct) =>
+        {
+            var logo = await s.OpenLogoAsync(code, ct);
+            if (logo is null) return Results.NotFound();
+            http.Response.Headers.CacheControl = "public, max-age=3600";
+            return Results.Stream(logo.Content, logo.ContentType);
+        }).WithSummary("The school's crest (public branding).");
     }
 }
 

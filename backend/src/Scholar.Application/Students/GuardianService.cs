@@ -305,12 +305,17 @@ public sealed class SearchService(IAppDbContext db, IAccessContext access)
         {
             var students = db.Students.Where(s => EF.Functions.ILike(s.FullName, pattern) || EF.Functions.ILike(s.AdmissionNumber, term + "%"));
             if (!current.AllCampuses) students = students.Where(s => current.CampusIds!.Contains(s.CampusId));
-            results.AddRange(await students
+            var found = await students
                 .OrderByDescending(s => s.Status == StudentStatus.Active).ThenBy(s => s.FullName).Take(6)
-                .Select(s => new SearchResultDto("student", s.Id, s.FullName,
-                    s.AdmissionNumber + " · " + (db.Sections.Where(x => x.Id == s.CurrentSectionId).Select(x => x.Grade.Name + " – " + x.Name).FirstOrDefault() ?? s.Status.ToString()),
-                    "/students/" + s.Id, s.PhotoFileId))
-                .ToListAsync(ct));
+                .Select(s => new
+                {
+                    s.Id, s.FullName, s.AdmissionNumber, s.Status, s.PhotoFileId,
+                    ClassName = db.Sections.Where(x => x.Id == s.CurrentSectionId).Select(x => x.Grade.Name + " – " + x.Name).FirstOrDefault(),
+                })
+                .ToListAsync(ct);
+            results.AddRange(found.Select(s => new SearchResultDto("student", s.Id, s.FullName,
+                $"{s.AdmissionNumber} · {(s.Status == StudentStatus.Active && s.ClassName is not null ? s.ClassName : Describe(s.Status))}",
+                "/students/" + s.Id, s.PhotoFileId)));
         }
 
         if (current.Has(Permissions.Guardians.View))
@@ -330,14 +335,28 @@ public sealed class SearchService(IAppDbContext db, IAccessContext access)
             var applications = current.AllCampuses
                 ? db.AdmissionApplications
                 : db.AdmissionApplications.Where(a => current.CampusIds!.Contains(a.CampusId));
-            results.AddRange(await applications
+            var found = await applications
                 .Where(a => EF.Functions.ILike(a.FirstName + " " + a.LastName, pattern) || EF.Functions.ILike(a.ApplicationNumber, term + "%"))
                 .OrderByDescending(a => a.CreatedAt).Take(4)
-                .Select(a => new SearchResultDto("application", a.Id, a.FirstName + " " + a.LastName, a.ApplicationNumber + " · " + a.Status,
-                    "/admissions/applications/" + a.Id, null))
-                .ToListAsync(ct));
+                .Select(a => new { a.Id, Name = a.FirstName + " " + a.LastName, a.ApplicationNumber, a.Status })
+                .ToListAsync(ct);
+            results.AddRange(found.Select(a => new SearchResultDto("application", a.Id, a.Name,
+                $"{a.ApplicationNumber} · {Describe(a.Status)}", "/admissions/applications/" + a.Id, null)));
         }
 
         return results;
     }
+
+    private static string Describe(StudentStatus status) => status switch
+    {
+        StudentStatus.TransferredOut => "Transferred out",
+        _ => status.ToString(),
+    };
+
+    private static string Describe(Domain.Admissions.ApplicationStatus status) => status switch
+    {
+        Domain.Admissions.ApplicationStatus.UnderReview => "Under review",
+        Domain.Admissions.ApplicationStatus.AssessmentScheduled => "Assessment scheduled",
+        _ => status.ToString(),
+    };
 }

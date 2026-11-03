@@ -390,11 +390,32 @@ public sealed class StudentAndAdmissionTests(ApiFactory factory) : IntegrationTe
 
         var content = await owner.Http.GetAsync($"/api/files/{uploaded.Id}/content");
         Assert.Equal(png, await content.Content.ReadAsByteArrayAsync());
+        var listed = await owner.GetJsonAsync<List<StoredFileDto>>($"/api/students/{student.Id}/documents");
+        Assert.Equal(uploaded.Id, Assert.Single(listed).Id);
 
         var (_, librarian) = await Factory.AddMemberAsync(school, SystemRoles.Librarian);
         using var other = Factory.CreateBrowserClient();
         await other.LoginAsync(librarian, TestData.Password);
         Assert.Equal(HttpStatusCode.Forbidden, (await other.GetAsync($"/api/files/{uploaded.Id}/content")).StatusCode);
+
+        // The crest is public branding; nothing else is reachable without signing in.
+        using var anonymous = Factory.CreateBrowserClient();
+        Assert.Equal(HttpStatusCode.NotFound, (await anonymous.GetAsync($"/api/public/schools/{school.Code}/logo")).StatusCode);
+        await owner.EnsureCsrfAsync();
+        using (var form = new MultipartFormDataContent())
+        {
+            var crest = new ByteArrayContent(png);
+            crest.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+            form.Add(crest, "file", "crest.png");
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/org/school/logo") { Content = form };
+            request.Headers.Add("X-CSRF-Token", owner.CsrfToken);
+            await (await owner.Http.SendAsync(request)).EnsureSuccessWithBodyAsync();
+        }
+
+        var logo = await anonymous.GetAsync($"/api/public/schools/{school.Code}/logo");
+        Assert.Equal(HttpStatusCode.OK, logo.StatusCode);
+        Assert.Equal(png, await logo.Content.ReadAsByteArrayAsync());
+        Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync($"/api/files/{uploaded.Id}/content")).StatusCode);
     }
 
     [Fact]
