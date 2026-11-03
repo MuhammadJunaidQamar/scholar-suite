@@ -32,8 +32,12 @@ public sealed record RegisterRowDto(Guid StudentId, string FullName, string Admi
 
 public sealed record RegisterCountsDto(int Total, int Present, int Late, int Absent, int Leave);
 
+/// <param name="CanSend">A provider is connected for at least one channel; when false, alerts are recorded but not sent.</param>
+public sealed record AlertPolicyDto(bool NotifyAbsent, bool NotifyLate, bool CanSend);
+
+/// <param name="NotSentChannels">Channels with messages that could not be sent (no provider connected for them).</param>
 public sealed record MessageCountsDto(int Total, int Pending, int NotSent, int Queued, int Sent, int Delivered, int Failed, int Cancelled,
-    string? NotSentReason);
+    string? NotSentReason, IReadOnlyList<MessageChannel> NotSentChannels);
 
 /// <param name="Register">Null until the register has been taken.</param>
 /// <param name="CanTake">May take (or, before it locks, edit) this register.</param>
@@ -43,7 +47,8 @@ public sealed record RegisterSheetDto(
     Guid SectionId, string ClassName, Guid CampusId, string CampusName, DateOnly Date, int? Period, string? PeriodLabel,
     Guid? SubjectId, string? SubjectName, string? ClassTeacherName, RegisterInfoDto? Register, DayStatusDto Day, bool CanTake,
     bool IsLocked, DateTimeOffset? LocksAt, bool CanCorrect, bool CanApprove, bool CanOverrideClosedDay,
-    IReadOnlyList<RegisterRowDto> Students, RegisterCountsDto Counts, CorrectionDto? PendingCorrection, MessageCountsDto? Alerts);
+    IReadOnlyList<RegisterRowDto> Students, RegisterCountsDto Counts, CorrectionDto? PendingCorrection, MessageCountsDto? Alerts,
+    AlertPolicyDto AlertPolicy, AttendanceMode Mode);
 
 public sealed record RegisterMarkInput(Guid StudentId, AttendanceStatus Status, string? Remark = null, TimeOnly? ArrivedAt = null);
 

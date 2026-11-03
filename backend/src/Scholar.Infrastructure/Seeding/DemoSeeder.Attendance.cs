@@ -63,6 +63,8 @@ public sealed partial class DemoSeeder
                 Address = new Domain.Common.Address { Line1 = $"House {random.Next(1, 300)}, Street {random.Next(1, 40)}", City = "Lahore", Province = "Punjab", CountryCode = "PK" },
             };
             if (staff.JoinDate > today.AddDays(-30)) staff.JoinDate = today.AddYears(-1);
+            // People join after finishing their studies: keep everyone at least 22 on their first day.
+            if (staff.DateOfBirth > staff.JoinDate.AddYears(-22)) staff.DateOfBirth = staff.JoinDate.AddYears(-22 - random.Next(0, 14)).AddDays(-random.Next(0, 300));
             db.Staff.Add(staff);
             return staff;
         }
@@ -605,16 +607,31 @@ public sealed partial class DemoSeeder
             (teachers[17], 1, 3, "SL", "Minor surgery — doctor advised three days' rest"),
         };
         if (demoTeacher is not null) upcoming.Add((demoTeacher, 9, 1, "CL", "Parent–teacher meeting at my son's school"));
+        // Future leave covers real school days (never a holiday or Sunday), counted the way the service counts them.
+        var holidays = await db.CalendarEvents.Where(e => e.IsHoliday).Select(e => new { e.StartDate, e.EndDate }).ToListAsync(ct);
+        var working = school.Settings.WorkingDays.ToHashSet();
+        List<DateOnly> SchoolDaysFrom(DateOnly start, int count)
+        {
+            var result = new List<DateOnly>();
+            for (var d = start; result.Count < count; d = d.AddDays(1))
+            {
+                if (working.Contains(d.DayOfWeek) && !holidays.Any(h => d >= h.StartDate && d <= h.EndDate)) result.Add(d);
+            }
+
+            return result;
+        }
+
         foreach (var (person, offset, length, type, reason) in upcoming)
         {
-            var from = today.AddDays(offset);
-            db.StaffLeaveRequests.Add(new StaffLeaveRequest(school.Id, person.Id, types[type].Id, from, from.AddDays(length - 1), false, length, reason, true)
+            var covered = SchoolDaysFrom(today.AddDays(offset), length);
+            db.StaffLeaveRequests.Add(new StaffLeaveRequest(school.Id, person.Id, types[type].Id, covered[0], covered[^1], false, covered.Count, reason, true)
             {
                 CreatedBy = person.UserId,
             });
         }
 
-        var refused = new StaffLeaveRequest(school.Id, teachers[8].Id, types["CL"].Id, today.AddDays(12), today.AddDays(16), false, 5,
+        var refusedDays = SchoolDaysFrom(today.AddDays(12), 5);
+        var refused = new StaffLeaveRequest(school.Id, teachers[8].Id, types["CL"].Id, refusedDays[0], refusedDays[^1], false, refusedDays.Count,
             "Visiting family in Dubai", true) { CreatedBy = teachers[8].UserId };
         refused.Reject(principalId ?? Guid.Empty, At(today.AddDays(-1), 11), "Mid-term examinations start that week. Please choose dates in the winter break.");
         db.StaffLeaveRequests.Add(refused);

@@ -124,13 +124,15 @@ public sealed class AbsenceNotifier(IAppDbContext db, AttendanceCalendar calenda
         var counts = await messages.GroupBy(m => m.Status).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(g => g.Key, g => g.Count, ct);
         int C(MessageStatus s) => counts.GetValueOrDefault(s);
         string? reason = null;
+        IReadOnlyList<MessageChannel> channels = [];
         if (C(MessageStatus.NotSent) > 0)
         {
             reason = await messages.Where(m => m.Status == MessageStatus.NotSent).Select(m => m.StatusDetail).FirstOrDefaultAsync(ct);
+            channels = await messages.Where(m => m.Status == MessageStatus.NotSent).Select(m => m.Channel).Distinct().OrderBy(c => c).ToListAsync(ct);
         }
 
         return new MessageCountsDto(counts.Values.Sum(), C(MessageStatus.Pending), C(MessageStatus.NotSent), C(MessageStatus.Queued),
-            C(MessageStatus.Sent), C(MessageStatus.Delivered), C(MessageStatus.Failed), C(MessageStatus.Cancelled), reason);
+            C(MessageStatus.Sent), C(MessageStatus.Delivered), C(MessageStatus.Failed), C(MessageStatus.Cancelled), reason, channels);
     }
 
     private static string? PurposeFor(AttendanceStatus status) => status switch

@@ -150,7 +150,10 @@ public sealed class RegisterService(
                          && (day.IsSchoolDay || rights.CanManage) && (period is null || settings.Attendance.Mode == AttendanceMode.PeriodWise);
         return new RegisterSheetDto(section.Id, section.ClassName, section.CampusId, section.CampusName, date, period, periodLabel, subjectId,
             subjectName, section.ClassTeacherName, info, day, canTakeNow, register is not null && locked, locksAt,
-            rights.CanTake && register is not null && locked, rights.CanApprove, rights.CanManage, rows, counts, pendingCorrection, alerts);
+            rights.CanTake && register is not null && locked, rights.CanApprove, rights.CanManage, rows, counts, pendingCorrection, alerts,
+            new AlertPolicyDto(settings.Attendance.NotifyGuardiansOnAbsence, settings.Attendance.NotifyGuardiansOnLate,
+                dispatcher.CanSend(Domain.Communication.MessageChannel.Sms) || dispatcher.CanSend(Domain.Communication.MessageChannel.WhatsApp)
+                || dispatcher.CanSend(Domain.Communication.MessageChannel.Email)), settings.Attendance.Mode);
     }
 
     // ───────────────────────────── Save ─────────────────────────────
