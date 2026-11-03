@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
-import { api, type Paged } from "./client";
+import { api, upload, type Paged } from "./client";
 
 // ───────── Types (mirror Scholar.Application.Organization DTOs) ─────────
 
@@ -295,6 +295,27 @@ export function useUpdateSchoolProfile() {
     },
   });
 }
+/** Uploads (or replaces) the school crest; the sidebar and public pages pick it up. */
+export function useUploadSchoolLogo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => {
+      const form = new FormData();
+      form.append("file", file);
+      return upload<{ id: string }>("/org/school/logo", form);
+    },
+    onSuccess: () => [orgKeys.school, ["auth", "me"]].forEach((key) => void queryClient.invalidateQueries({ queryKey: key })),
+  });
+}
+
+export function useRemoveSchoolLogo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (fileId: string) => api.delete(`/files/${fileId}`),
+    onSuccess: () => [orgKeys.school, ["auth", "me"]].forEach((key) => void queryClient.invalidateQueries({ queryKey: key })),
+  });
+}
+
 export function useUpdatePolicies() {
   const queryClient = useQueryClient();
   return useMutation({

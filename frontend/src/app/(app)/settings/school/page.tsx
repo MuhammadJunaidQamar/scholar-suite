@@ -8,7 +8,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth/session";
 import { P } from "@/lib/permissions";
-import { useSchoolProfile, useUpdateSchoolProfile, type SchoolProfile } from "@/lib/api/org";
+import { useRemoveSchoolLogo, useSchoolProfile, useUpdateSchoolProfile, useUploadSchoolLogo, type SchoolProfile } from "@/lib/api/org";
 import { Page, PageHeader } from "@/components/shell/page";
 import { Button } from "@/components/ui/button";
 import { Input, NativeSelect } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/display";
 import { ErrorState } from "@/components/ui/states";
 import { toast } from "@/components/ui/toaster";
 import { applyFieldErrors, nullIfEmpty } from "@/components/forms/form-dialog";
-import { SchoolCrest } from "@/components/shell/sidebar";
+import { SchoolCrest, crestUrl } from "@/components/shell/sidebar";
 
 const provinces = ["Punjab", "Sindh", "Khyber Pakhtunkhwa", "Balochistan", "Islamabad Capital Territory", "Gilgit-Baltistan", "Azad Jammu and Kashmir"];
 const timezones = ["Asia/Karachi", "Asia/Dubai", "Asia/Riyadh", "Asia/Qatar", "Asia/Kolkata", "Asia/Dhaka", "Europe/London", "Europe/Berlin", "America/New_York", "UTC"];
@@ -95,6 +95,54 @@ function AccentPicker({ value, onChange, disabled }: { value: string; onChange: 
         <Input value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} className="w-32 font-mono text-sm" aria-label="Hex colour" />
         {custom && <span className="text-sm text-ink-2">Custom colour — automatically deepened if too light for text.</span>}
       </div>
+    </div>
+  );
+}
+
+/** Upload, replace or remove the crest shown in the sidebar, on the online application form and on printed documents. */
+function CrestUpload({ profile, editable }: { profile: SchoolProfile; editable: boolean }) {
+  const uploadLogo = useUploadSchoolLogo();
+  const removeLogo = useRemoveSchoolLogo();
+  const input = React.useRef<HTMLInputElement>(null);
+  const logo = profile.logoFileId ? crestUrl(profile.code, profile.logoFileId) : null;
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <SchoolCrest name={profile.shortName ?? profile.name} size={56} logo={logo} className="border border-line" />
+      {editable && (
+        <div className="grid gap-1.5">
+          <div className="flex items-center gap-2">
+            <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" aria-label="Choose a crest image"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                try {
+                  await uploadLogo.mutateAsync(file);
+                  toast.success("Crest updated");
+                } catch (error) {
+                  toast.error(error, "The crest couldn't be uploaded");
+                }
+              }} />
+            <Button type="button" variant="secondary" size="sm" loading={uploadLogo.isPending} onClick={() => input.current?.click()}>
+              {profile.logoFileId ? "Replace crest" : "Upload crest"}
+            </Button>
+            {profile.logoFileId && (
+              <Button type="button" variant="ghost" size="sm" loading={removeLogo.isPending}
+                onClick={async () => {
+                  try {
+                    await removeLogo.mutateAsync(profile.logoFileId!);
+                    toast.success("Crest removed");
+                  } catch (error) {
+                    toast.error(error, "The crest couldn't be removed");
+                  }
+                }}>
+                Remove
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-ink-2">Square PNG, JPG or WebP, at most 5 MB. Without one, the school&apos;s initials are shown.</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -208,13 +256,16 @@ export default function SchoolProfilePage() {
           <FormSection title="Branding" description="The accent colour runs through buttons, highlights and printed documents."
             aside={
               <div className="mt-4 hidden items-center gap-3 rounded-lg border border-line bg-surface p-3 lg:flex">
-                <SchoolCrest name={name || "School"} size={36} />
+                <SchoolCrest name={name || "School"} size={36} logo={profile.data.logoFileId ? crestUrl(profile.data.code, profile.data.logoFileId) : null} />
                 <div className="grid gap-1.5">
                   <span className="text-sm font-semibold">{name || "School"}</span>
                   <span className="inline-flex h-6 items-center rounded-md bg-accent px-2 text-xs font-medium text-accent-ink">Primary action</span>
                 </div>
               </div>
             }>
+            <Field label="Crest">
+              <CrestUpload profile={profile.data} editable={editable} />
+            </Field>
             <Field label="Accent colour" error={errors.brandColor?.message}>
               <AccentPicker value={brand ?? "#1F5F4A"} disabled={!editable}
                 onChange={(v) => form.setValue("brandColor", v, { shouldDirty: true, shouldValidate: true })} />

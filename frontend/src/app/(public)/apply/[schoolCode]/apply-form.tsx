@@ -15,7 +15,7 @@ import { Field, FieldRow } from "@/components/ui/field";
 import { Checkbox } from "@/components/ui/toggles";
 import { Skeleton } from "@/components/ui/display";
 import { applyFieldErrors } from "@/components/forms/form-dialog";
-import { SchoolCrest } from "@/components/shell/sidebar";
+import { SchoolCrest, crestUrl } from "@/components/shell/sidebar";
 import {
   ApplicantAddressFields,
   ApplicantChildFields,
@@ -52,12 +52,7 @@ function useSchoolBrand(color: string | null | undefined) {
 }
 
 function Crest({ school }: { school: PublicSchool }) {
-  const [failed, setFailed] = React.useState(false);
-  if (school.logoFileId && !failed) {
-    // eslint-disable-next-line @next/next/no-img-element -- served by the API, which Next's image optimiser can't reach
-    return <img src={`/api/public/schools/${school.code}/logo`} alt="" className="size-14 rounded-md object-contain" onError={() => setFailed(true)} />;
-  }
-  return <SchoolCrest name={school.shortName ?? school.name} size={56} />;
+  return <SchoolCrest name={school.shortName ?? school.name} size={56} logo={school.logoFileId ? crestUrl(school.code, school.logoFileId) : null} />;
 }
 
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {

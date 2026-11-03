@@ -149,6 +149,11 @@ public sealed class FileService(IAppDbContext db, IAccessContext access, IFileSt
             var student = await db.Students.SingleOrDefaultAsync(s => s.Id == file.OwnerId && s.PhotoFileId == file.Id, ct);
             if (student is not null) student.PhotoFileId = null;
         }
+        else if (file.OwnerType == FileOwners.School)
+        {
+            var school = await db.Schools.SingleOrDefaultAsync(s => s.Id == file.OwnerId && s.LogoFileId == file.Id, ct);
+            if (school is not null) school.LogoFileId = null;
+        }
 
         await db.SaveChangesAsync(ct);
     }

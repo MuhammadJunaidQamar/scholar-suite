@@ -415,6 +415,12 @@ public sealed class StudentAndAdmissionTests(ApiFactory factory) : IntegrationTe
         var logo = await anonymous.GetAsync($"/api/public/schools/{school.Code}/logo");
         Assert.Equal(HttpStatusCode.OK, logo.StatusCode);
         Assert.Equal(png, await logo.Content.ReadAsByteArrayAsync());
+
+        // Removing the crest takes it off the public page too.
+        var profile = await owner.GetJsonAsync<Application.Organization.SchoolProfileDto>("/api/org/school");
+        await (await owner.SendAsync(HttpMethod.Delete, $"/api/files/{profile.LogoFileId}")).EnsureSuccessWithBodyAsync();
+        Assert.Null((await owner.GetJsonAsync<Application.Organization.SchoolProfileDto>("/api/org/school")).LogoFileId);
+        Assert.Equal(HttpStatusCode.NotFound, (await anonymous.GetAsync($"/api/public/schools/{school.Code}/logo")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync($"/api/files/{uploaded.Id}/content")).StatusCode);
     }
 
