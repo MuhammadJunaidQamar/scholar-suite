@@ -15,8 +15,18 @@ namespace Scholar.Api.Infrastructure;
 internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails, ILogger<ApiExceptionHandler> logger)
     : IExceptionHandler
 {
+    /// <summary>Non-standard "client closed request": the caller went away, so nothing is sent and nothing is wrong.</summary>
+    private const int ClientClosedRequest = 499;
+
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
+        if (exception is OperationCanceledException && httpContext.RequestAborted.IsCancellationRequested)
+        {
+            logger.LogDebug("Request aborted by the client: {Method} {Path}", httpContext.Request.Method, httpContext.Request.Path);
+            httpContext.Response.StatusCode = ClientClosedRequest;
+            return true;
+        }
+
         var problem = Map(exception);
         if (problem is null)
         {

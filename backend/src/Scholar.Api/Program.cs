@@ -56,8 +56,8 @@ try
         return;
     }
 
-    app.UseExceptionHandler();
-    app.UseStatusCodePages();
+    // Request logging wraps the exception handler so it records the status actually sent (a 422 or 404 from a
+    // handled exception is not logged as a 500).
     app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0} ms";
@@ -67,6 +67,8 @@ try
             diagnostics.Set("SchoolId", http.User.FindFirst(ScholarClaims.SchoolId)?.Value ?? "-");
         };
     });
+    app.UseExceptionHandler();
+    app.UseStatusCodePages();
     app.UseSecurityHeaders();
 
     if (!app.Environment.IsProduction())
