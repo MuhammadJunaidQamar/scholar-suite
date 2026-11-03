@@ -1,5 +1,8 @@
 import {
   BadgeCheck,
+  BellRing,
+  CalendarClock,
+  UsersRound,
   Scale,
   Building2,
   CalendarDays,
@@ -44,6 +47,9 @@ export const settingsNavigation: SettingsGroup[] = [
       { label: "Calendar", href: "/settings/calendar", icon: Layers, permissions: [P.Academics.View], ready: true, description: "Holidays, examinations and school events." },
       { label: "Grading", href: "/settings/grading", icon: BadgeCheck, permissions: [P.Academics.View], ready: true, description: "Grading scales and pass marks." },
       { label: "Departments & designations", href: "/settings/departments", icon: Shapes, permissions: [P.School.View], ready: true, description: "How staff are organised." },
+      { label: "Teaching assignments", href: "/settings/teaching", icon: UsersRound, permissions: [P.Academics.View, P.Staff.View], ready: true, description: "Class teachers and subject teachers for every section." },
+      { label: "Bell times", href: "/settings/bell-times", icon: BellRing, permissions: [P.Academics.View, P.Timetable.View, P.Attendance.View], ready: true, description: "Each campus's periods and breaks." },
+      { label: "Leave types", href: "/settings/leave-types", icon: CalendarClock, permissions: [P.Hr.Configure, P.Hr.ViewLeave, P.Hr.ApproveLeave], ready: true, description: "Kinds of staff leave and yearly allowances." },
     ],
   },
   {

@@ -67,6 +67,7 @@ export const P = {
     ViewBank: "staff.bank.view",
     ViewAttendance: "staff.attendance.view",
     RecordAttendance: "staff.attendance.record",
+    ApproveAttendance: "staff.attendance.approve",
   },
   Hr: {
     ViewLeave: "hr.leave.view",
