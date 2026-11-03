@@ -45,6 +45,7 @@ try
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddScholarIdentity();
     builder.Services.AddScholarAuthentication(builder.Configuration);
+    builder.Services.AddPermissionAuthorization();
     builder.Services.AddHealthChecks()
         .AddDbContextCheck<AppDbContext>("database", tags: ["ready"]);
 
@@ -97,6 +98,8 @@ try
         .WithTags("Meta")
         .AllowAnonymous();
     api.MapAuthEndpoints();
+    api.MapAccessEndpoints();
+    api.MapPlatformEndpoints();
 
     app.Run();
 }

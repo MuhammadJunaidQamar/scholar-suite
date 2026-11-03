@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using Scholar.Api.Auth;
+using Scholar.Application.Access;
 using Scholar.Application.Identity;
 using Scholar.Domain.Identity;
 
@@ -10,7 +11,6 @@ public sealed record BrowserSessionResponse(AuthUserDto User, DateTimeOffset Acc
 public sealed record TokenResponse(string AccessToken, DateTimeOffset AccessTokenExpiresAt, string RefreshToken,
     DateTimeOffset RefreshTokenExpiresAt, AuthUserDto User);
 public sealed record MobileRefreshRequest(string RefreshToken);
-public sealed record MeResponse(AuthUserDto User, IReadOnlyList<SchoolSummaryDto> Schools);
 
 internal static class AuthEndpoints
 {
@@ -121,9 +121,8 @@ internal static class AuthEndpoints
             })
             .WithSummary("Change the signed-in user's password. Ends other sessions.");
 
-        auth.MapGet("/me", async (AuthService service, CancellationToken ct) =>
-                new MeResponse(await service.GetUserAsync(ct), await service.ListMySchoolsAsync(ct)))
-            .WithSummary("The signed-in user and the schools they can work in.");
+        auth.MapGet("/me", (MeService service, CancellationToken ct) => service.GetAsync(ct))
+            .WithSummary("The signed-in user, active school, permissions, campus scope and portals.");
 
         auth.MapGet("/sessions", (AuthService service, CancellationToken ct) => service.ListSessionsAsync(ct))
             .WithSummary("Active sessions (devices) of the signed-in user.");

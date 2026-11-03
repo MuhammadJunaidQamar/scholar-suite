@@ -131,8 +131,10 @@ public sealed class GradingScale : TenantEntity, IHasAuditTrail
             var band = ordered[i];
             Guard.Against(band.Min < 0 || band.Max > 100 || band.Min > band.Max, "grading.band_range",
                 $"Band {band.Grade} must be within 0–100 with minimum ≤ maximum.");
-            Guard.Against(i > 0 && band.Min <= ordered[i - 1].Max, "grading.overlap",
-                $"Band {band.Grade} overlaps band {ordered[i - 1].Grade}.");
+            if (i > 0 && band.Min <= ordered[i - 1].Max)
+            {
+                throw new DomainException("grading.overlap", $"Band {band.Grade} overlaps band {ordered[i - 1].Grade}.");
+            }
         }
 
         Bands.Clear();

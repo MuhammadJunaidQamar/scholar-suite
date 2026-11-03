@@ -59,6 +59,11 @@ public sealed class AuditSaveChangesInterceptor(ICurrentUser currentUser, ITenan
                 GuardTenant(entry, tenantEntity, schoolId);
             }
 
+            if (entry is { State: EntityState.Added, Entity: Domain.Identity.User { CreatedAt.Ticks: 0 } user })
+            {
+                user.CreatedAt = now;
+            }
+
             if (entry.Entity is IAuditable auditable)
             {
                 if (entry.State == EntityState.Added)

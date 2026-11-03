@@ -29,7 +29,7 @@ public sealed class AuthenticationTests(ApiFactory factory) : IntegrationTest(fa
         Assert.DoesNotContain("\"refreshToken\":", raw, StringComparison.Ordinal);
         Assert.Equal(school.SchoolId, body.User.SchoolId);
 
-        var me = await browser.GetJsonAsync<MeResponse>("/api/auth/me");
+        var me = await browser.GetJsonAsync<Scholar.Application.Access.MeDto>("/api/auth/me");
         Assert.Equal(school.UserId, me.User.Id);
         Assert.Single(me.Schools);
     }
