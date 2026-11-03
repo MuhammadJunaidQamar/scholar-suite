@@ -1,5 +1,8 @@
 using System.Text.Json.Serialization;
 using Scholar.Api.Infrastructure;
+using Scholar.Application.Abstractions;
+using Scholar.Infrastructure;
+using Scholar.Infrastructure.Persistence;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -32,9 +35,18 @@ try
     });
     builder.Services.AddExceptionHandler<ApiExceptionHandler>();
     builder.Services.AddOpenApi();
-    builder.Services.AddHealthChecks();
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<AppDbContext>("database", tags: ["ready"]);
 
     var app = builder.Build();
+
+    if (await DatabaseCommands.TryRunAsync(app, args))
+    {
+        return;
+    }
 
     app.UseExceptionHandler();
     app.UseStatusCodePages();
@@ -54,7 +66,8 @@ try
         });
     }
 
-    app.MapHealthChecks("/health/live");
+    app.MapHealthChecks("/health/live", new() { Predicate = _ => false });
+    app.MapHealthChecks("/health/ready", new() { Predicate = check => check.Tags.Contains("ready") });
 
     app.MapGet("/api/meta", (IConfiguration configuration) => new
     {
