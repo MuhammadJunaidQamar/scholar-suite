@@ -328,7 +328,8 @@ public sealed class StaffLeaveService(IAppDbContext db, IAccessContext access, A
         return rows.Select(r =>
         {
             var own = r.Staff.UserId == current.UserId;
-            var canCancel = r.Status == LeaveStatus.Pending ? own || approver : r.Status == LeaveStatus.Approved && approver && r.ToDate >= today.AddDays(-60);
+            // A pending request is withdrawn by its owner (approvers reject it instead); approved leave is cancelled by approvers.
+            var canCancel = r.Status == LeaveStatus.Pending ? own : r.Status == LeaveStatus.Approved && approver && r.ToDate >= today.AddDays(-60);
             return new StaffLeaveDto(r.Id, r.StaffId, r.Staff.FullName, r.Staff.EmployeeNumber, r.Staff.Designation, r.LeaveTypeId, r.Type.Code,
                 r.Type.Name, r.FromDate, r.ToDate, r.HalfDay, r.Days, r.Reason, r.Status, r.RequestedBySelf, r.CreatedAt,
                 RegisterService.Name(names, r.CreatedBy), RegisterService.Name(names, r.DecidedBy), r.DecidedAt, r.DecisionNote,
