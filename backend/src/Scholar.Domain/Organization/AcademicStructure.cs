@@ -62,8 +62,40 @@ public sealed class AcademicYear : TenantEntity, IHasAuditTrail
             "Terms cannot overlap.");
         var term = new AcademicTerm(SchoolId, Id, name, Terms.Count + 1, startDate, endDate);
         Terms.Add(term);
+        Resequence();
         return term;
     }
+
+    public void UpdateTerm(Guid termId, string name, DateOnly startDate, DateOnly endDate)
+    {
+        var term = Terms.SingleOrDefault(t => t.Id == termId)
+            ?? throw new DomainException("term.not_found", "That term does not belong to this academic year.");
+        Guard.Against(endDate <= startDate, "term.dates", "A term must end after it starts.");
+        Guard.Against(startDate < StartDate || endDate > EndDate, "term.outside_year", "The term must fall inside the academic year.");
+        Guard.Against(Terms.Any(t => t.Id != termId && startDate <= t.EndDate && endDate >= t.StartDate), "term.overlap",
+            "Terms cannot overlap.");
+        term.Name = name.Trim();
+        term.StartDate = startDate;
+        term.EndDate = endDate;
+        Resequence();
+    }
+
+    public void RemoveTerm(Guid termId)
+    {
+        var term = Terms.SingleOrDefault(t => t.Id == termId)
+            ?? throw new DomainException("term.not_found", "That term does not belong to this academic year.");
+        Terms.Remove(term);
+        Resequence();
+    }
+
+    /// <summary>Terms are numbered in date order so "Term 1" is always the earliest.</summary>
+    private void Resequence()
+    {
+        var ordered = Terms.OrderBy(t => t.StartDate).ToList();
+        for (var i = 0; i < ordered.Count; i++) ordered[i].Sequence = i + 1;
+    }
+
+    public AcademicTerm? TermOn(DateOnly date) => Terms.FirstOrDefault(t => date >= t.StartDate && date <= t.EndDate);
 }
 
 public sealed class AcademicTerm : TenantEntity

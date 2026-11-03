@@ -23,7 +23,8 @@ internal sealed class AcademicTermConfiguration : IEntityTypeConfiguration<Acade
     {
         b.ToTable("academic_terms", t => t.HasCheckConstraint("ck_academic_terms_dates", "end_date > start_date"));
         b.Property(t => t.Name).HasMaxLength(60);
-        b.HasIndex(t => new { t.AcademicYearId, t.Sequence }).IsUnique();
+        // Sequence is a derived display order (date order); not unique, so terms can swap places in one save.
+        b.HasIndex(t => new { t.AcademicYearId, t.Sequence });
     }
 }
 

@@ -688,7 +688,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_academic_terms_school_id");
 
                     b.HasIndex("AcademicYearId", "Sequence")
-                        .IsUnique()
                         .HasDatabaseName("ix_academic_terms_academic_year_id_sequence");
 
                     b.ToTable("academic_terms", null, t =>

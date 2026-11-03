@@ -26,6 +26,16 @@ public static class DependencyInjection
         // Organization
         services.AddScoped<ISchoolClock, SchoolClock>();
         services.AddScoped<OverviewService>();
+        services.AddScoped<SchoolSettingsService>();
+        services.AddScoped<CampusService>();
+        services.AddScoped<AcademicYearService>();
+        services.AddScoped<GradeService>();
+        services.AddScoped<SectionService>();
+        services.AddScoped<SubjectService>();
+        services.AddScoped<RoomService>();
+        services.AddScoped<CalendarService>();
+        services.AddScoped<GradingService>();
+        services.AddScoped<StaffStructureService>();
 
         // Platform
         services.AddScoped<SchoolProvisioningService>();

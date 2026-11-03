@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
@@ -13,7 +12,7 @@ namespace Scholar.Infrastructure.Persistence;
 /// transaction ends, so concurrent callers are serialised and numbers are never duplicated; a rolled-back transaction
 /// returns its number, so sequences stay gap-free.
 /// </summary>
-internal sealed partial class SequenceGenerator(AppDbContext db, ITenantContext tenant) : ISequenceGenerator
+internal sealed class SequenceGenerator(AppDbContext db, ITenantContext tenant) : ISequenceGenerator
 {
     public async Task<string> NextAsync(string key, DateOnly date, CancellationToken ct = default)
     {
@@ -75,7 +74,7 @@ internal sealed partial class SequenceGenerator(AppDbContext db, ITenantContext 
             var value = reader.GetInt64(0);
             var prefix = reader.GetString(1);
             var pattern = reader.GetString(2);
-            return Format(pattern, prefix, value, date);
+            return SequencePattern.Format(pattern, prefix, value, date);
         }
         finally
         {
@@ -85,21 +84,4 @@ internal sealed partial class SequenceGenerator(AppDbContext db, ITenantContext 
             }
         }
     }
-
-    internal static string Format(string pattern, string prefix, long value, DateOnly date)
-    {
-        var text = pattern
-            .Replace("{prefix}", prefix, StringComparison.Ordinal)
-            .Replace("{yyyy}", date.Year.ToString("D4", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace("{yy}", (date.Year % 100).ToString("D2", CultureInfo.InvariantCulture), StringComparison.Ordinal)
-            .Replace("{mm}", date.Month.ToString("D2", CultureInfo.InvariantCulture), StringComparison.Ordinal);
-        return SeqToken().Replace(text, m =>
-        {
-            var width = m.Groups[1].Success ? int.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture) : 1;
-            return value.ToString(CultureInfo.InvariantCulture).PadLeft(width, '0');
-        });
-    }
-
-    [GeneratedRegex(@"\{seq(?::(\d{1,2}))?\}")]
-    private static partial Regex SeqToken();
 }
