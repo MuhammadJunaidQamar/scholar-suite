@@ -3,8 +3,9 @@
 _Last updated: 2026-11-03_
 
 ## Current stage
-**M2 complete → starting M3 (school configuration screens).** Foundations, identity, access control and the web
-application shell are in place and verified end to end (API + PostgreSQL + Next.js, screenshots in light/dark).
+**M3 complete → starting M4 (students, guardians, admissions).** Foundations, identity, access control, the web
+application shell and the full school-configuration area are in place and verified end to end (API + PostgreSQL +
+Next.js, screenshots in light/dark).
 
 ## Completed
 
@@ -20,7 +21,8 @@ application shell are in place and verified end to end (API + PostgreSQL + Next.
 - Access: 122-permission catalogue, 15 seeded system roles, campus-scoped assignments, cached effective access with
   immediate invalidation, escalation guards (cannot grant what you lack; owner role owner-only; last owner kept).
 - Platform: school provisioning with pluggable module steps (roles, numbering, designations, departments, grading).
-- Organization: overview (calendar position, counts, upcoming events, setup checklist), campuses, audit trail read API.
+- Organization: overview, school profile/policies/modules/numbering, campuses, academic years & terms, grades,
+  sections, subjects, streams, curriculum, rooms, calendar, grading scales, departments & designations, audit trail.
 - Development demo seed: Greenfield Grammar School (Lahore), 2 campuses, 2025–26 and current 2026–27 years with
   terms, 13 grades, 31 sections, 40 rooms, 16 subjects with curriculum, 2026–27 calendar, 11 staff accounts.
 
@@ -36,16 +38,20 @@ application shell are in place and verified end to end (API + PostgreSQL + Next.
 - Sign-in, forgot/reset password, invitation acceptance, forced password change; routing proxy.
 - Overview dashboard (real data), Settings index, Users (invite, roles, suspend), Roles & permissions (matrix editor),
   Account and Password & sessions.
+- School configuration: profile & branding (live accent preview), policies (working week, attendance, fees,
+  admissions, results), campuses, modules, numbering (live preview), academic years & terms (timeline with today
+  marker), grades & sections (structure view, copy between years), subjects, streams & per-grade curriculum editor,
+  rooms, calendar (almanac view), grading scales (band editor), departments & designations, audit log (diffs).
 
 ## Tests
-`dotnet test backend/Scholar.slnx` — 15 unit + 28 integration tests (real PostgreSQL), all passing.
+`dotnet test backend/Scholar.slnx` — 15 unit + 34 integration tests (real PostgreSQL), all passing.
 Frontend: `npx tsc --noEmit` and `npm run lint` clean.
 
 ## Git
 | | |
 |---|---|
 | Branch | `main` → `origin` https://github.com/MuhammadJunaidQamar/scholar-suite (private) |
-| Commits so far | `2fe23d5` docs · `4513974` solution · `92e09dc` db · `106b822` auth · `6811202` access · `e2d3d8f` seed · `47e195b` ui tokens · `1254d9f` data table · `3a32b8b` api overview/audit · _web shell (this commit)_ |
+| Commits so far | `2fe23d5` docs · `4513974` solution · `92e09dc` db · `106b822` auth · `6811202` access · `e2d3d8f` seed · `47e195b` ui tokens · `1254d9f` data table · `3a32b8b` api overview/audit · `7e0f586` web shell · `bd9cb01` key-generation fix · `f197f81` org APIs · _settings screens (this commit)_ |
 | Latest pushed | every commit above is pushed; verify with `git log origin/main -1` |
 
 ## Known problems / decisions to revisit
@@ -57,7 +63,6 @@ Frontend: `npx tsc --noEmit` and `npm run lint` clean.
 - QuestPDF licensing must be reviewed for organisations above USD 1M revenue (when PDF generation lands).
 
 ## Next tasks
-1. M3 — school configuration screens and APIs: profile & branding, campuses, modules, numbering, academic years &
-   terms, grades & sections, subjects & curriculum, rooms, calendar, grading, departments & designations, audit log.
-2. M4 — students, guardians and admissions.
-3. M5 — attendance; M6 — fees and ledger.
+1. M4 — students (profiles, enrolment, guardians, documents, import/export) and admissions pipeline.
+2. M5 — attendance; M6 — fees and ledger.
+3. Logo/crest upload once secure file storage lands (M4 documents).
