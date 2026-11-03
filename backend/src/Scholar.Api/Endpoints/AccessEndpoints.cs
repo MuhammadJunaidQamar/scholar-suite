@@ -45,10 +45,14 @@ internal static class AccessEndpoints
         access.MapGet("/members/{userId:guid}", (Guid userId, MemberService members, CancellationToken ct) =>
                 members.GetAsync(userId, ct))
             .RequirePermission(Permissions.Users.View);
+        access.MapPost("/members/{userId:guid}/reset-password", (Guid userId, MemberService members, CancellationToken ct) =>
+                members.ResetPasswordAsync(userId, ct))
+            .RequirePermission(Permissions.Users.Manage)
+            .WithSummary("Issue a one-time password (shown once) and sign the person out everywhere.");
         access.MapPost("/members", async (InviteMemberRequest request, MemberService members, CancellationToken ct) =>
             {
-                var member = await members.InviteAsync(request, ct);
-                return Results.Created($"/api/access/members/{member.UserId}", member);
+                var result = await members.InviteAsync(request, ct);
+                return Results.Created($"/api/access/members/{result.Member.UserId}", result);
             })
             .RequirePermission(Permissions.Users.Manage);
         access.MapPut("/members/{userId:guid}/roles", (Guid userId, UpdateMemberRolesRequest request, MemberService members,
@@ -75,8 +79,8 @@ internal static class AccessEndpoints
         platform.MapGet("/schools", (SchoolProvisioningService service, CancellationToken ct) => service.ListAsync(ct));
         platform.MapPost("/schools", async (ProvisionSchoolRequest request, SchoolProvisioningService service, CancellationToken ct) =>
         {
-            var school = await service.ProvisionAsync(request, ct);
-            return Results.Created($"/api/platform/schools/{school.Id}", school);
+            var result = await service.ProvisionAsync(request, ct);
+            return Results.Created($"/api/platform/schools/{result.School.Id}", result);
         }).WithSummary("Provision a new school with its main campus, default roles and owner account.");
         platform.MapPost("/schools/{id:guid}/suspend", async (Guid id, SchoolProvisioningService service, CancellationToken ct) =>
         {

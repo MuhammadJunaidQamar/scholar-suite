@@ -10,7 +10,8 @@ import { Field, FieldRow } from "@/components/ui/field";
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toaster";
 import { ApiError } from "@/lib/api/client";
-import { useInviteMember, useUpdateMemberRoles, type Member } from "@/lib/api/access";
+import { useInviteMember, useUpdateMemberRoles, type InviteResult, type Member } from "@/lib/api/access";
+import { AccountHandoverNotice } from "@/components/records/account-handover";
 import { RoleAssignmentsEditor } from "./role-assignments";
 
 const assignments = z
@@ -40,31 +41,61 @@ export function applyServerErrors<T extends Record<string, unknown>>(
 
 export function InviteMemberDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const invite = useInviteMember();
+  const [result, setResult] = React.useState<InviteResult | null>(null);
   const form = useForm<InviteValues>({
     resolver: zodResolver(inviteSchema),
     defaultValues: { firstName: "", lastName: "", email: "", roles: [{ roleId: "", campusId: null }] },
   });
 
-  React.useEffect(() => {
-    if (!open) form.reset();
-  }, [open, form]);
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      form.reset();
+      setResult(null);
+    }
+    onOpenChange(next);
+  };
 
   const submit = form.handleSubmit(async (values) => {
     if (invite.isPending) return;
     try {
-      const member = await invite.mutateAsync(values);
-      toast.success(`Invitation sent to ${member.fullName}`, "They'll receive an email to choose a password.");
-      onOpenChange(false);
+      const outcome = await invite.mutateAsync(values);
+      if (outcome.handover?.temporaryPassword) {
+        // Nothing reached them: keep the dialog open to show the one-time sign-in details.
+        setResult(outcome);
+        return;
+      }
+      if (outcome.handover) toast.success(`${outcome.member.fullName} has access`, outcome.handover.invitation === "Sent"
+        ? `Invitation handed to the email provider for ${outcome.handover.sentTo}.`
+        : `Invitation queued for ${outcome.handover.sentTo}; not delivered yet.`);
+      else toast.success(`${outcome.member.fullName} has access`, "They already have an account and can sign in with it.");
+      handleOpenChange(false);
     } catch (error) {
-      if (!applyServerErrors<InviteValues>(error, form.setError)) toast.error(error, "The invitation couldn't be sent");
+      if (!applyServerErrors<InviteValues>(error, form.setError)) toast.error(error, "Access couldn't be given");
     }
   });
 
   const errors = form.formState.errors;
+  if (result?.handover) {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent size="md">
+          <DialogHeader title={`${result.member.fullName} has access`} description="Their account is ready with the roles you chose." />
+          <DialogBody>
+            <AccountHandoverNotice handover={result.handover} name={result.member.fullName.split(" ")[0] ?? result.member.fullName}
+              loginName={result.member.email ?? result.member.userName} />
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="primary" onClick={() => handleOpenChange(false)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent size="md">
-        <DialogHeader title="Invite someone" description="They'll get an email with a link to set their password." />
+        <DialogHeader title="Give someone access" description="They sign in with their email address. If no invitation can be emailed, you'll get a one-time password to pass on." />
         <form onSubmit={submit} noValidate className="contents">
           <DialogBody className="grid gap-4">
             <FieldRow>
@@ -90,8 +121,8 @@ export function InviteMemberDialog({ open, onOpenChange }: { open: boolean; onOp
             </Field>
           </DialogBody>
           <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" variant="primary" loading={invite.isPending}>Send invitation</Button>
+            <Button type="button" variant="secondary" onClick={() => handleOpenChange(false)}>Cancel</Button>
+            <Button type="submit" variant="primary" loading={invite.isPending}>Give access</Button>
           </DialogFooter>
         </form>
       </DialogContent>

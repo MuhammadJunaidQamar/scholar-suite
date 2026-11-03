@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<ISchoolModuleGate, SchoolModuleGate>();
         services.AddScoped<MeService>();
         services.AddScoped<RoleService>();
+        services.AddScoped<AccountOnboarding>();
         services.AddScoped<MemberService>();
         services.AddScoped<AuditService>();
 

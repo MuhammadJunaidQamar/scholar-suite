@@ -23,6 +23,10 @@ internal static class AuthEndpoints
             .AllowAnonymous()
             .WithSummary("Issue the CSRF cookie a browser needs before signing in.");
 
+        auth.MapGet("/options", (AccountOnboarding onboarding) => new SignInOptionsResponse(onboarding.CanEmail))
+            .AllowAnonymous()
+            .WithSummary("What the sign-in pages can offer (e.g. whether reset links can be e-mailed). Says nothing about any account.");
+
         auth.MapPost("/login", async (LoginRequest request, AuthService service, HttpContext http,
                 IOptions<AuthOptions> options, CancellationToken ct) =>
             {
@@ -139,3 +143,6 @@ internal static class AuthEndpoints
         new(result.Tokens.AccessToken, result.Tokens.AccessTokenExpiresAt, result.Tokens.RefreshToken,
             result.Tokens.RefreshTokenExpiresAt, result.User);
 }
+
+/// <param name="PasswordResetByEmail">False while no e-mail provider is configured, so the page doesn't promise a link.</param>
+public sealed record SignInOptionsResponse(bool PasswordResetByEmail);

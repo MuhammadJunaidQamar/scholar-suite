@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Scholar.Application.Identity;
@@ -39,7 +40,7 @@ public static class IdentityServices
 
         services.AddMemoryCache();
         services.AddScoped<ISessionValidator, SessionValidator>();
-        services.AddScoped<IAccountNotifier, LoggingAccountNotifier>();
+        services.AddScoped<IAccountNotifier, UndeliveredAccountNotifier>();
         return services;
     }
 }
@@ -73,20 +74,28 @@ internal sealed class SessionValidator(AppDbContext db, IMemoryCache cache, Time
 }
 
 /// <summary>
-/// Development stand-in until the communication module delivers real e-mail: writes links to the log.
-/// It never claims delivery.
+/// Stand-in until the communication module connects an e-mail provider: nothing is sent, and every call says so.
+/// Links are written to the log only when <c>Notifications:WriteLinksToLog</c> is set (development), since they grant
+/// access to accounts.
 /// </summary>
-internal sealed class LoggingAccountNotifier(ILogger<LoggingAccountNotifier> logger) : IAccountNotifier
+internal sealed class UndeliveredAccountNotifier(ILogger<UndeliveredAccountNotifier> logger, IConfiguration configuration) : IAccountNotifier
 {
-    public Task SendPasswordResetAsync(User user, string resetLink, CancellationToken ct)
+    private const string NotConfigured = "Email delivery isn't set up yet, so no message was sent.";
+
+    private bool WriteLinks => configuration.GetValue<bool>("Notifications:WriteLinksToLog");
+
+    public bool CanDeliver => false;
+
+    public Task<DeliveryResult> SendPasswordResetAsync(User user, string resetLink, CancellationToken ct)
     {
-        logger.LogWarning("[dev-mail] Password reset for {UserName}: {Link}", user.UserName, resetLink);
-        return Task.CompletedTask;
+        if (WriteLinks) logger.LogWarning("[dev-mail, not sent] Password reset for {UserName}: {Link}", user.UserName, resetLink);
+        else logger.LogWarning("Password reset for {UserName} was not sent: no email provider is configured", user.UserName);
+        return Task.FromResult(new DeliveryResult(DeliveryState.NotSent, NotConfigured));
     }
 
-    public Task SendInvitationAsync(User user, string schoolName, string setupLink, CancellationToken ct)
+    public Task<DeliveryResult> SendInvitationAsync(User user, string schoolName, string setupLink, CancellationToken ct)
     {
-        logger.LogWarning("[dev-mail] Invitation for {UserName} to {School}: {Link}", user.UserName, schoolName, setupLink);
-        return Task.CompletedTask;
+        if (WriteLinks) logger.LogWarning("[dev-mail, not sent] Invitation for {UserName} to {School}: {Link}", user.UserName, schoolName, setupLink);
+        return Task.FromResult(new DeliveryResult(DeliveryState.NotSent, NotConfigured));
     }
 }

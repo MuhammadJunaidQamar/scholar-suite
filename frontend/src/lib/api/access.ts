@@ -89,10 +89,25 @@ export function useDeleteRole() {
   });
 }
 
+/** What happened to an invitation: never "Sent" unless the e-mail provider accepted it. */
+export type DeliveryState = "NotSent" | "Queued" | "Sent";
+
+/** How a new account's first sign-in was handed over (an invitation, or a one-time password shown once). */
+export type AccountHandover = { invitation: DeliveryState; sentTo: string | null; temporaryPassword: string | null; detail: string | null };
+
+export type InviteResult = { member: Member; handover: AccountHandover | null };
+
+/** Issues a one-time password (shown once) and signs the person out everywhere. */
+export function useResetMemberPassword() {
+  return useMutation({
+    mutationFn: (userId: string) => api.post<AccountHandover>(`/access/members/${userId}/reset-password`),
+  });
+}
+
 export function useInviteMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: InviteMember) => api.post<Member>("/access/members", body),
+    mutationFn: (body: InviteMember) => api.post<InviteResult>("/access/members", body),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["access", "members"] });
       void queryClient.invalidateQueries({ queryKey: accessKeys.roles });

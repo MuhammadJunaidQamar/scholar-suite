@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { api, download, upload, type Paged } from "./client";
+import type { AccountHandover } from "./access";
 import type { Address } from "./org";
 
 // ───────── Types (mirror Scholar.Application.Students DTOs) ─────────
@@ -268,7 +269,8 @@ export type SaveGuardianRequest = Omit<GuardianDetail, "id" | "fullName" | "hasL
 };
 
 export type GuardianMatch = { id: string; fullName: string; phone: string; email: string | null; children: string[] };
-export type PortalAccessResult = { loginName: string; temporaryPassword: string | null; invitationEmailed: boolean };
+/** Handover is null when the guardian already had an account (e.g. as a member of staff). */
+export type PortalAccessResult = { loginName: string; handover: AccountHandover | null };
 export type SearchResult = { kind: "student" | "guardian" | "application" | string; id: string; title: string; subtitle: string | null; href: string; photoFileId: string | null };
 
 // ───────── Labels ─────────

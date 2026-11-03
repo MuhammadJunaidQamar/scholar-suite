@@ -142,7 +142,8 @@ public sealed class AuthorizationTests(ApiFactory factory) : IntegrationTest(fac
             firstName = "Iqra", lastName = "Auditor", email = "iqra@greenfield.test",
             roles = new[] { new { roleId = role.Id, campusId = (Guid?)null } },
         });
-        var member = await invite.ReadJsonAsync<MemberListItemDto>();
+        var invited = await invite.ReadJsonAsync<InviteMemberResult>();
+        var member = invited.Member;
         await SetPasswordAsync(member.UserId);
 
         using var auditor = await SignInAsync("iqra@greenfield.test");
@@ -188,7 +189,9 @@ public sealed class AuthorizationTests(ApiFactory factory) : IntegrationTest(fac
             code = "riverside", name = "Riverside Academy", mainCampusName = "Model Town",
             owner = new { firstName = "Rafay", lastName = "Owner", email = "rafay@riverside.test", password = TestData.Password },
         });
-        var dto = await created.ReadJsonAsync<PlatformSchoolDto>();
+        var provisioned = await created.ReadJsonAsync<ProvisionedSchoolDto>();
+        Assert.Null(provisioned.OwnerHandover); // a password was supplied, so there was nothing to hand over
+        var dto = provisioned.School;
         Assert.Equal(1, dto.CampusCount);
         Assert.Equal(1, dto.MemberCount);
 
@@ -202,6 +205,11 @@ public sealed class AuthorizationTests(ApiFactory factory) : IntegrationTest(fac
         await using var scope = Factory.Services.CreateAsyncScope();
         var users = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<Domain.Identity.User>>();
         var user = await users.FindByIdAsync(userId.ToString());
-        await users.AddPasswordAsync(user!, TestData.Password);
+        // Invited accounts start with a one-time password; replace it as if the person had chosen their own.
+        if (await users.HasPasswordAsync(user!)) await users.RemovePasswordAsync(user!);
+        var added = await users.AddPasswordAsync(user!, TestData.Password);
+        Assert.True(added.Succeeded);
+        user!.MustChangePassword = false;
+        await users.UpdateAsync(user);
     }
 }

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Scholar.Application.Abstractions;
 using Scholar.Application.Common;
 using Scholar.Application.Identity;
@@ -17,9 +16,9 @@ public sealed class MemberService(
     RoleService roles,
     UserManager<User> users,
     AuthService auth,
-    IAccountNotifier notifier,
+    AccountOnboarding onboarding,
     ICurrentUser currentUser,
-    IOptions<AuthOptions> authOptions)
+    TimeProvider clock)
 {
     public async Task<PagedResult<MemberListItemDto>> ListAsync(MemberQuery query, CancellationToken ct)
     {
@@ -64,7 +63,7 @@ public sealed class MemberService(
             page.Page, page.PageSize, page.Total);
     }
 
-    public async Task<MemberListItemDto> InviteAsync(InviteMemberRequest request, CancellationToken ct)
+    public async Task<InviteMemberResult> InviteAsync(InviteMemberRequest request, CancellationToken ct)
     {
         await access.RequireAsync(Permissions.Users.Manage, ct);
         var current = await access.GetAsync(ct);
@@ -100,16 +99,16 @@ public sealed class MemberService(
         await ReplaceAssignmentsAsync(user.Id, schoolId, targetRoles, ct);
         await db.SaveChangesAsync(ct);
 
+        // People who already have an account (e.g. at another school) simply sign in; new accounts are handed over.
+        AccountHandover? handover = null;
         if (isNew || user.PasswordHash is null)
         {
-            var token = await users.GeneratePasswordResetTokenAsync(user);
-            var link = $"{authOptions.Value.PublicAppUrl.TrimEnd('/')}/accept-invite?uid={user.Id}&token={Uri.EscapeDataString(token)}";
             var schoolName = await db.Schools.Where(s => s.Id == schoolId).Select(s => s.Name).SingleAsync(ct);
-            await notifier.SendInvitationAsync(user, schoolName, link, ct);
+            handover = await onboarding.HandOverAsync(user, schoolName, ct);
         }
 
         access.Invalidate(user.Id);
-        return await GetAsync(user.Id, ct);
+        return new InviteMemberResult(await GetAsync(user.Id, ct), handover);
     }
 
     public async Task<MemberListItemDto> GetAsync(Guid userId, CancellationToken ct)
@@ -176,6 +175,42 @@ public sealed class MemberService(
         }
 
         access.Invalidate(userId);
+    }
+
+    /// <summary>
+    /// Issues a one-time password for a member who can't sign in (no e-mail delivery, forgotten password) and ends
+    /// their sessions. Refused for your own account, for platform administrators, for accounts that also belong to
+    /// another school (one school must not take over a person's access elsewhere), and for anyone holding a role the
+    /// actor could not grant (no taking over a more privileged account).
+    /// </summary>
+    public async Task<AccountHandover> ResetPasswordAsync(Guid userId, CancellationToken ct)
+    {
+        await access.RequireAsync(Permissions.Users.Manage, ct);
+        Guard.Against(userId == currentUser.UserId, "member.self", "Change your own password from your account settings.");
+        var membership = await db.SchoolMemberships.Include(m => m.User).SingleOrDefaultAsync(m => m.UserId == userId, ct)
+            ?? throw new NotFoundException("Member", userId);
+        var user = membership.User;
+        Guard.Against(user.IsPlatformAdmin, "member.platform_admin", "Platform administrators manage their own sign-in.");
+        var shared = await db.SchoolMemberships.IgnoreQueryFilters()
+            .AnyAsync(m => m.UserId == userId && m.SchoolId != membership.SchoolId, ct);
+        Guard.Against(shared, "member.shared_account",
+            "This person also signs in to another school, so only they can reset their password (from the sign-in page).");
+
+        var targetRoles = (await db.UserRoles.Where(ur => ur.UserId == userId)
+                .Include(ur => ur.Role).ThenInclude(r => r.Permissions).ToListAsync(ct))
+            .Select(ur => ur.Role).DistinctBy(r => r.Id);
+        foreach (var role in targetRoles)
+        {
+            await EnsureCanGrantRoleAsync(role, ct);
+        }
+
+        var handover = await onboarding.ResetToTemporaryPasswordAsync(user, ct);
+        await auth.RevokeAllSessionsAsync(userId, null, "password_reset_by_admin", ct);
+        db.AuditLogs.Add(new Domain.Auditing.AuditLog(membership.SchoolId, currentUser.UserId, "member.password_reset", "User", userId.ToString(),
+            null, clock.GetUtcNow(), currentUser.IpAddress, currentUser.UserAgent));
+        await db.SaveChangesAsync(ct);
+        access.Invalidate(userId);
+        return handover;
     }
 
     private async Task<List<(Role Role, Guid? CampusId)>> ValidateAssignmentsAsync(IReadOnlyList<RoleAssignmentInput> inputs,

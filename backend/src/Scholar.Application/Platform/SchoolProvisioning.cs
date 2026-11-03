@@ -1,7 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Scholar.Application.Abstractions;
 using Scholar.Application.Common;
 using Scholar.Application.Identity;
@@ -26,6 +25,10 @@ public sealed record ProvisionOwnerRequest(string FirstName, string LastName, st
 
 public sealed record PlatformSchoolDto(Guid Id, string Code, string Name, string? ShortName, SchoolStatus Status,
     string Timezone, string CurrencyCode, int CampusCount, int MemberCount, DateTimeOffset CreatedAt);
+
+/// <param name="OwnerHandover">How the new owner's first sign-in was handed over; null when they already had an account
+/// or a password was supplied.</param>
+public sealed record ProvisionedSchoolDto(PlatformSchoolDto School, Identity.AccountHandover? OwnerHandover);
 
 /// <summary>
 /// A module's contribution to a brand-new school (default roles, chart of accounts, attendance statuses…).
@@ -63,10 +66,9 @@ public sealed class SchoolProvisioningService(
     ITenantContext tenant,
     IEnumerable<ISchoolProvisioningStep> steps,
     UserManager<User> users,
-    IAccountNotifier notifier,
-    IOptions<AuthOptions> authOptions)
+    AccountOnboarding onboarding)
 {
-    public async Task<PlatformSchoolDto> ProvisionAsync(ProvisionSchoolRequest request, CancellationToken ct)
+    public async Task<ProvisionedSchoolDto> ProvisionAsync(ProvisionSchoolRequest request, CancellationToken ct)
     {
         var code = School.NormalizeCode(request.Code);
         if (await db.Schools.AnyAsync(s => s.Code == code, ct))
@@ -107,14 +109,8 @@ public sealed class SchoolProvisioningService(
             }
         }, ct: ct);
 
-        if (inviteUser is not null)
-        {
-            var token = await users.GeneratePasswordResetTokenAsync(inviteUser);
-            var link = $"{authOptions.Value.PublicAppUrl.TrimEnd('/')}/accept-invite?uid={inviteUser.Id}&token={Uri.EscapeDataString(token)}";
-            await notifier.SendInvitationAsync(inviteUser, request.Name, link, ct);
-        }
-
-        return await GetAsync(schoolId, ct);
+        var handover = inviteUser is not null ? await onboarding.HandOverAsync(inviteUser, request.Name, ct) : null;
+        return new ProvisionedSchoolDto(await GetAsync(schoolId, ct), handover);
     }
 
     public async Task<IReadOnlyList<PlatformSchoolDto>> ListAsync(CancellationToken ct) =>

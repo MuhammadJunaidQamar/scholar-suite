@@ -45,8 +45,8 @@ public static class TestData
         await using var scope = factory.Services.CreateAsyncScope();
         var provisioning = scope.ServiceProvider.GetRequiredService<Application.Platform.SchoolProvisioningService>();
         var email = $"owner@{code}.test";
-        var school = await provisioning.ProvisionAsync(new Application.Platform.ProvisionSchoolRequest(code, $"{code} school",
-            null, "Main Campus", new Application.Platform.ProvisionOwnerRequest("Olivia", "Owner", email, Password)), default);
+        var school = (await provisioning.ProvisionAsync(new Application.Platform.ProvisionSchoolRequest(code, $"{code} school",
+            null, "Main Campus", new Application.Platform.ProvisionOwnerRequest("Olivia", "Owner", email, Password)), default)).School;
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var campusId = db.Campuses.IgnoreQueryFiltersFor(school.Id).Single(c => c.IsMain).Id;
         var ownerId = db.Users.Single(u => u.Email == email).Id;

@@ -73,11 +73,17 @@ public interface IAccessTokenIssuer
     (string Token, DateTimeOffset ExpiresAt) Issue(User user, UserSession session);
 }
 
-/// <summary>Sends account e-mails (reset links, invitations). Implemented by the communication module.</summary>
+/// <summary>
+/// Sends account e-mails (reset links, invitations). Implemented by the communication module. Each call reports what
+/// actually happened, so callers never tell anyone a message was delivered when it was not.
+/// </summary>
 public interface IAccountNotifier
 {
-    Task SendPasswordResetAsync(User user, string resetLink, CancellationToken ct);
-    Task SendInvitationAsync(User user, string schoolName, string setupLink, CancellationToken ct);
+    /// <summary>False while no e-mail provider is configured: every send reports <see cref="DeliveryState.NotSent"/>.</summary>
+    bool CanDeliver { get; }
+
+    Task<DeliveryResult> SendPasswordResetAsync(User user, string resetLink, CancellationToken ct);
+    Task<DeliveryResult> SendInvitationAsync(User user, string schoolName, string setupLink, CancellationToken ct);
 }
 
 /// <summary>Cached session state consulted on every authenticated request.</summary>

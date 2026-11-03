@@ -22,6 +22,9 @@ public sealed record MemberListItemDto(Guid UserId, string FullName, string? Ema
 
 public sealed record InviteMemberRequest(string FirstName, string LastName, string Email, IReadOnlyList<RoleAssignmentInput> Roles);
 
+/// <param name="Handover">How the new account's first sign-in was handed over; null when they already had an account.</param>
+public sealed record InviteMemberResult(MemberListItemDto Member, Identity.AccountHandover? Handover);
+
 public sealed record UpdateMemberRolesRequest(IReadOnlyList<RoleAssignmentInput> Roles);
 
 public sealed record MemberQuery : PageQuery

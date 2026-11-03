@@ -2,16 +2,17 @@
 
 import * as React from "react";
 import type { ColumnDef, VisibilityState } from "@tanstack/react-table";
-import { Ban, RotateCcw, ShieldCheck, UserPlus, Users } from "lucide-react";
+import { Ban, KeyRound, RotateCcw, ShieldCheck, UserPlus, Users } from "lucide-react";
 import { useSession } from "@/lib/auth/session";
 import { P } from "@/lib/permissions";
 import { formatRelative } from "@/lib/format";
-import { useMembers, useRoles, useSetMemberSuspended, type Member } from "@/lib/api/access";
+import { useMembers, useResetMemberPassword, useRoles, useSetMemberSuspended, type AccountHandover, type Member } from "@/lib/api/access";
 import { Page, PageHeader } from "@/components/shell/page";
 import { Button } from "@/components/ui/button";
 import { Avatar, Badge, StatusBadge } from "@/components/ui/display";
 import { EmptyState } from "@/components/ui/states";
-import { ConfirmDialog } from "@/components/ui/dialog";
+import { ConfirmDialog, Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import { AccountHandoverNotice } from "@/components/records/account-handover";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/menu";
 import { toast } from "@/components/ui/toaster";
 import { DataTable, type Density } from "@/components/data-table/data-table";
@@ -80,6 +81,9 @@ export default function UsersPage() {
   const [inviteOpen, setInviteOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Member | null>(null);
   const [confirm, setConfirm] = React.useState<{ member: Member; suspend: boolean } | null>(null);
+  const resetPassword = useResetMemberPassword();
+  const [resetting, setResetting] = React.useState<Member | null>(null);
+  const [issued, setIssued] = React.useState<{ member: Member; handover: AccountHandover } | null>(null);
   const [density, setDensity] = useTablePreference<Density>("users.density", "comfortable");
   const [visibility, setVisibility] = useTablePreference<VisibilityState>("users.columns", {});
 
@@ -94,7 +98,7 @@ export default function UsersPage() {
         actions={
           canManage && (
             <Button variant="primary" onClick={() => setInviteOpen(true)}>
-              <UserPlus /> Invite someone
+              <UserPlus /> Add someone
             </Button>
           )
         }
@@ -138,6 +142,9 @@ export default function UsersPage() {
                     <DropdownMenuItem onSelect={() => setEditing(member)}>
                       <ShieldCheck /> Edit roles
                     </DropdownMenuItem>
+                    <DropdownMenuItem disabled={member.userId === me.user.id} onSelect={() => setResetting(member)}>
+                      <KeyRound /> Reset password…
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {member.membershipStatus === "Suspended" ? (
                       <DropdownMenuItem onSelect={() => setConfirm({ member, suspend: false })}>
@@ -156,6 +163,38 @@ export default function UsersPage() {
         />
       </div>
 
+      <ConfirmDialog
+        open={resetting !== null}
+        onOpenChange={(open) => !open && setResetting(null)}
+        title={`Reset ${resetting?.fullName}'s password?`}
+        description="They'll be signed out everywhere, and you'll get a one-time password to give them. They choose a new password when they next sign in."
+        confirmLabel="Reset password"
+        loading={resetPassword.isPending}
+        onConfirm={async () => {
+          if (!resetting) return;
+          try {
+            const handover = await resetPassword.mutateAsync(resetting.userId);
+            setIssued({ member: resetting, handover });
+            setResetting(null);
+          } catch (error) {
+            toast.error(error, "The password couldn't be reset");
+          }
+        }}
+      />
+      <Dialog open={issued !== null} onOpenChange={(open) => !open && setIssued(null)}>
+        <DialogContent size="md">
+          <DialogHeader title="One-time password issued" description={`${issued?.member.fullName} has been signed out everywhere.`} />
+          <DialogBody>
+            {issued && (
+              <AccountHandoverNotice name={issued.member.fullName.split(" ")[0] ?? issued.member.fullName}
+                loginName={issued.member.email ?? issued.member.userName} handover={issued.handover} reset />
+            )}
+          </DialogBody>
+          <DialogFooter>
+            <Button variant="primary" onClick={() => setIssued(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <InviteMemberDialog open={inviteOpen} onOpenChange={setInviteOpen} />
       <EditRolesDialog member={editing} onOpenChange={(open) => !open && setEditing(null)} />
       <ConfirmDialog

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, ApiError } from "@/lib/api/client";
 import { meQueryKey } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,12 @@ const passwordRule = z
 
 export function ForgotPasswordForm() {
   const [sent, setSent] = React.useState(false);
+  // Whether reset links can be e-mailed at all is system-wide, so asking reveals nothing about any account.
+  const options = useQuery({
+    queryKey: ["auth", "options"],
+    queryFn: () => api.get<{ passwordResetByEmail: boolean }>("/auth/options"),
+    staleTime: 5 * 60_000,
+  });
   const form = useForm<{ identifier: string }>({
     resolver: zodResolver(z.object({ identifier: z.string().trim().min(1, "Enter your email or username.") })),
     defaultValues: { identifier: "" },
@@ -35,10 +41,20 @@ export function ForgotPasswordForm() {
     }
   });
 
+  if (options.data && !options.data.passwordResetByEmail) {
+    return (
+      <>
+        <AuthHeading title="Ask your school office"
+          description="Email isn't set up yet, so a reset link can't be sent. The office can give you a one-time password; you'll choose a new one when you sign in." />
+        <Button asChild variant="secondary" size="lg" className="w-full"><Link href="/login">Back to sign in</Link></Button>
+      </>
+    );
+  }
+
   if (sent) {
     return (
       <>
-        <AuthHeading title="Check your email" description="If an account matches, we've sent a link to choose a new password. It works for one hour." />
+        <AuthHeading title="Check your email" description="If an account matches, a link to choose a new password is being emailed to it. The link works for one hour." />
         <Button asChild variant="secondary" size="lg" className="w-full"><Link href="/login">Back to sign in</Link></Button>
       </>
     );

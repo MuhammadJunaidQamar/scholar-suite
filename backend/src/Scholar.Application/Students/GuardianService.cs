@@ -1,8 +1,6 @@
-using System.Security.Cryptography;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Scholar.Application.Abstractions;
 using Scholar.Application.Access;
 using Scholar.Application.Common;
@@ -36,8 +34,9 @@ public sealed record SaveGuardianRequest(string FirstName, string LastName, stri
 
 public sealed record GuardianMatchDto(Guid Id, string FullName, string Phone, string? Email, IReadOnlyList<string> Children);
 
-/// <summary>Credentials are shown once to the office when a guardian has no e-mail (printed or sent by SMS later).</summary>
-public sealed record PortalAccessResult(string LoginName, string? TemporaryPassword, bool InvitationEmailed);
+/// <param name="Handover">How the new login was handed over (an invitation, or a one-time password shown once to the
+/// office); null when the guardian already had an account, e.g. as a member of staff.</param>
+public sealed record PortalAccessResult(string LoginName, AccountHandover? Handover);
 
 public sealed class SaveGuardianValidator : AbstractValidator<SaveGuardianRequest>
 {
@@ -55,8 +54,7 @@ public sealed class GuardianService(
     IAppDbContext db,
     IAccessContext access,
     UserManager<User> users,
-    IAccountNotifier notifier,
-    IOptions<AuthOptions> authOptions)
+    AccountOnboarding onboarding)
 {
     public async Task<PagedResult<GuardianListItemDto>> ListAsync(GuardianQuery query, CancellationToken ct)
     {
@@ -158,8 +156,6 @@ public sealed class GuardianService(
             user = await db.Users.SingleOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail, ct);
         }
 
-        string? temporaryPassword = null;
-        var emailed = false;
         await db.InTransactionAsync(async innerCt =>
         {
             if (user is null)
@@ -170,18 +166,7 @@ public sealed class GuardianService(
                     Status = UserStatus.Invited,
                     PhoneNumber = guardian.Phone,
                 };
-                IdentityResult created;
-                if (string.IsNullOrWhiteSpace(guardian.Email))
-                {
-                    temporaryPassword = GeneratePassword();
-                    user.MustChangePassword = true;
-                    created = await users.CreateAsync(user, temporaryPassword);
-                }
-                else
-                {
-                    created = await users.CreateAsync(user);
-                }
-
+                var created = await users.CreateAsync(user);
                 if (!created.Succeeded) throw new DomainExceptionFromIdentity(created);
             }
 
@@ -201,16 +186,14 @@ public sealed class GuardianService(
         }, ct: ct);
 
         access.Invalidate(user!.Id);
-        if (temporaryPassword is null && user.PasswordHash is null)
+        AccountHandover? handover = null;
+        if (user.PasswordHash is null)
         {
-            var token = await users.GeneratePasswordResetTokenAsync(user);
-            var link = $"{authOptions.Value.PublicAppUrl.TrimEnd('/')}/accept-invite?uid={user.Id}&token={Uri.EscapeDataString(token)}";
             var schoolName = await db.Schools.Where(s => s.Id == current.SchoolId).Select(s => s.Name).SingleAsync(ct);
-            await notifier.SendInvitationAsync(user, schoolName, link, ct);
-            emailed = true;
+            handover = await onboarding.HandOverAsync(user, schoolName, ct);
         }
 
-        return new PortalAccessResult(user.Email ?? user.UserName!, temporaryPassword, emailed);
+        return new PortalAccessResult(user.Email ?? user.UserName!, handover);
     }
 
     private async Task<string> UniqueUserNameAsync(Guardian guardian, CancellationToken ct)
@@ -224,14 +207,6 @@ public sealed class GuardianService(
         }
 
         return candidate;
-    }
-
-    private static string GeneratePassword()
-    {
-        const string letters = "abcdefghjkmnpqrstuvwxyz";
-        var bytes = RandomNumberGenerator.GetBytes(8);
-        var word = new string(bytes.Take(6).Select(b => letters[b % letters.Length]).ToArray());
-        return $"{char.ToUpperInvariant(word[0])}{word[1..]}-{RandomNumberGenerator.GetInt32(1000, 9999)}";
     }
 
     private static void Apply(Guardian g, SaveGuardianRequest r)
