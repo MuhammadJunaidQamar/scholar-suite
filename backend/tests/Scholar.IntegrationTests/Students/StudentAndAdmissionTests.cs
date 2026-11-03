@@ -203,6 +203,19 @@ public sealed class StudentAndAdmissionTests(ApiFactory factory) : IntegrationTe
 
         Assert.Equal(0, (await owner.GetJsonAsync<PagedResult<StudentListItemDto>>("/api/students")).Total);
         Assert.Equal(1, (await owner.GetJsonAsync<PagedResult<StudentListItemDto>>("/api/students?scope=left")).Total);
+
+        // Coming back needs a section: an active student without a placement would be missing from every register.
+        var noSection = await owner.PostAsync($"/api/students/{student.Id}/status", new { status = "Active", effectiveDate = new DateOnly(2027, 1, 4) });
+        Assert.Equal("student.readmit_requires_placement", await noSection.ProblemCodeAsync());
+
+        var readmitted = await (await owner.PostAsync($"/api/students/{student.Id}/status",
+            new { status = "Active", effectiveDate = new DateOnly(2027, 1, 4), reason = "Family returned to Lahore", sectionId = s.SectionB }))
+            .ReadJsonAsync<StudentDetailDto>();
+        Assert.Equal("Active", readmitted.Status.ToString());
+        Assert.Equal("Class 5 – B", readmitted.CurrentEnrollment!.ClassName);
+        Assert.Equal(2, readmitted.Enrollments.Count);
+        Assert.Equal(2, readmitted.StatusHistory.Count);
+        Assert.Equal(1, (await owner.GetJsonAsync<PagedResult<StudentListItemDto>>("/api/students")).Total);
     }
 
     [Fact]

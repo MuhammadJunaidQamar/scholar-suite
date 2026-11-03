@@ -86,6 +86,9 @@ public sealed class Student : TenantEntity, IHasAuditTrail, IConcurrencyVersione
             "Only graduated students become alumni.");
         Guard.Against(to is StudentStatus.Withdrawn or StudentStatus.TransferredOut && string.IsNullOrWhiteSpace(reason),
             "student.reason_required", "Record the reason the student is leaving.");
+        // A returning student needs a place first; an active student without a section would vanish from every register.
+        Guard.Against(to is StudentStatus.Active or StudentStatus.Suspended && CurrentSectionId is null, "student.readmit_requires_placement",
+            "Choose the section the student is returning to.");
 
         var change = new StudentStatusChange(SchoolId, Id, Status, to, effective, reason, destination, by);
         if (to is StudentStatus.Withdrawn or StudentStatus.TransferredOut or StudentStatus.Graduated)

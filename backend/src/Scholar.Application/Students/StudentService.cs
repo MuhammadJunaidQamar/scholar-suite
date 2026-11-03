@@ -232,6 +232,19 @@ public sealed class StudentService(IAppDbContext db, IAccessContext access, ISeq
         await db.InTransactionAsync(async innerCt =>
         {
             var student = await LoadScopedAsync(id, innerCt, includeEnrollments: true);
+            if (request.Status is StudentStatus.Active or StudentStatus.Suspended && student.CurrentSectionId is null
+                && request.SectionId is { } sectionId)
+            {
+                // Re-admission: the returning student gets a new placement; the old one stays closed in history.
+                var section = await LoadSectionForPlacementAsync(sectionId, current, innerCt);
+                await EnsureCapacityAsync(section, request.OverrideCapacity, innerCt);
+                db.Enrollments.Add(new Enrollment(current.SchoolId, student.Id, section.AcademicYearId, section.CampusId, section.GradeId,
+                    section.Id, request.EffectiveDate));
+                student.CurrentSectionId = section.Id;
+                student.CurrentAcademicYearId = section.AcademicYearId;
+                student.CampusId = section.CampusId;
+            }
+
             var change = student.ChangeStatus(request.Status, request.EffectiveDate, Clean(request.Reason), Clean(request.DestinationSchool),
                 current.UserId);
             db.StudentStatusChanges.Add(change);

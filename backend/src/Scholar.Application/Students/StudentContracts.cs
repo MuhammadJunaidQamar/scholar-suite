@@ -68,7 +68,9 @@ public sealed record CreateStudentRequest(StudentDetailsInput Student, Placement
 
 public sealed record UpdateStudentRequest(StudentDetailsInput Student, uint Version);
 
-public sealed record ChangeStudentStatusRequest(StudentStatus Status, DateOnly EffectiveDate, string? Reason, string? DestinationSchool);
+/// <param name="SectionId">Required when a student who left returns (re-admission): the section they rejoin.</param>
+public sealed record ChangeStudentStatusRequest(StudentStatus Status, DateOnly EffectiveDate, string? Reason, string? DestinationSchool,
+    Guid? SectionId = null, bool OverrideCapacity = false);
 
 public sealed record TransferSectionRequest(Guid SectionId, DateOnly EffectiveDate, string? Reason, bool OverrideCapacity = false);
 
