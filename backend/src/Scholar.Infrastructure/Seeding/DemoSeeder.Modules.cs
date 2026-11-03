@@ -75,6 +75,9 @@ public sealed partial class DemoSeeder
     {
         await SeedStudentsAsync(school, context, ct);
         await SeedAdmissionsAsync(school, context, ct);
+        await SeedStaffAsync(school, context, ct);
+        await SeedBellSchedulesAsync(school, context, ct);
+        await SeedAttendanceAsync(school, context, ct);
     }
 
     /// <summary>~600 students in families of one to three children, enrolled in this year's sections, plus a few leavers.</summary>
