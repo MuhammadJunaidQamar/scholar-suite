@@ -1,0 +1,57 @@
+# ---- Secrets & local configuration (never commit) ----
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+*.pem
+appsettings.*.local.json
+**/secrets.json
+
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+.vs/
+*.rsuser
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+artifacts/
+
+# ---- Node / Next.js ----
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ---- Tests / tooling output ----
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+screenshots/
+
+# ---- Runtime data ----
+storage/
+*.log
+logs/
+
+# ---- Editors / OS ----
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+*.swp
