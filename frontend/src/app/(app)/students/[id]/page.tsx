@@ -27,8 +27,9 @@ import { RecordAvatar } from "@/components/records/record-avatar";
 import { ChangeStatusDialog, MoveSectionDialog } from "@/components/students/student-dialogs";
 import { EditStudentDialog } from "@/components/students/edit-student-dialog";
 import { DocumentsTab, FamilyTab, HistoryTab, MedicalTab, OverviewTab } from "@/components/students/profile-tabs";
+import { AttendanceTab } from "@/components/students/attendance-tab";
 
-const tabs = ["overview", "family", "history", "medical", "documents"] as const;
+const tabs = ["overview", "family", "attendance", "history", "medical", "documents"] as const;
 type Tab = (typeof tabs)[number];
 
 export default function StudentProfilePage() {
@@ -48,7 +49,8 @@ export default function StudentProfilePage() {
 
   const canMedical = can(P.Students.ViewMedical);
   const canDocuments = can(P.Students.ViewDocuments);
-  const visibleTabs = tabs.filter((t) => (t !== "medical" || canMedical) && (t !== "documents" || canDocuments));
+  const canAttendance = can(P.Attendance.View, P.Attendance.Manage);
+  const visibleTabs = tabs.filter((t) => (t !== "medical" || canMedical) && (t !== "documents" || canDocuments) && (t !== "attendance" || canAttendance));
   const requested = searchParams.get("tab") as Tab | null;
   const tab: Tab = requested && visibleTabs.includes(requested) ? requested : "overview";
   const setTab = (next: string) => {
@@ -170,12 +172,14 @@ export default function StudentProfilePage() {
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="family">Family <span className="text-ink-3 tabular">{s.guardians.length}</span></TabsTrigger>
+          {canAttendance && <TabsTrigger value="attendance">Attendance</TabsTrigger>}
           <TabsTrigger value="history">History</TabsTrigger>
           {canMedical && <TabsTrigger value="medical">Medical</TabsTrigger>}
           {canDocuments && <TabsTrigger value="documents">Documents <span className="text-ink-3 tabular">{s.documentCount}</span></TabsTrigger>}
         </TabsList>
         <TabsContent value="overview"><OverviewTab student={s} onShowFamily={() => setTab("family")} /></TabsContent>
         <TabsContent value="family"><FamilyTab student={s} /></TabsContent>
+        {canAttendance && <TabsContent value="attendance"><AttendanceTab student={s} /></TabsContent>}
         <TabsContent value="history"><HistoryTab student={s} /></TabsContent>
         {canMedical && <TabsContent value="medical"><MedicalTab student={s} /></TabsContent>}
         {canDocuments && <TabsContent value="documents"><DocumentsTab student={s} /></TabsContent>}

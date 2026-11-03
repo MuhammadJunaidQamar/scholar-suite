@@ -56,6 +56,10 @@
   --chart-4: oklch(0.6 0.12 25);
   --chart-5: oklch(0.6 0.05 300);
   --chart-muted: oklch(0.88 0.006 85);
+  /* A single data series in the school's hue: lightness and chroma clamped into the validated chart band so a muted
+     brand colour still reads as data, not as a gridline (dataviz validator: light band 0.43–0.77, chroma ≥ 0.1). */
+  --chart-line: oklch(from var(--accent) clamp(0.46, l, 0.62) max(c, 0.11) h);
+  --chart-grid: oklch(0.93 0.005 85);
 
   color-scheme: light;
 }
@@ -104,6 +108,8 @@
   --chart-4: oklch(0.7 0.12 28);
   --chart-5: oklch(0.72 0.05 300);
   --chart-muted: oklch(0.32 0.005 75);
+  --chart-line: oklch(from var(--accent) clamp(0.48, calc(l - 0.06), 0.66) max(c, 0.11) h);
+  --chart-grid: oklch(0.26 0.005 75);
 
   color-scheme: dark;
 }

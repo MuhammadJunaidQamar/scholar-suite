@@ -562,11 +562,12 @@ export function useWithdrawCorrection() {
 
 // ───────── Reports ─────────
 
-export const useAttendanceOverview = (query: { date?: string; campusId?: string }) =>
+export const useAttendanceOverview = (query: { date?: string; campusId?: string }, enabled = true) =>
   useQuery({
     queryKey: attendanceKeys.overview(query),
     queryFn: ({ signal }) => api.get<AttendanceOverview>("/attendance/overview", clean(query), signal),
     placeholderData: keepPreviousData,
+    enabled,
   });
 
 export const useAttendanceTrend = (query: { from?: string; to?: string; campusId?: string }) =>

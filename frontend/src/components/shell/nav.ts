@@ -23,6 +23,7 @@ import {
   UsersRound,
   Utensils,
   CalendarRange,
+  Sun,
 } from "lucide-react";
 import { P } from "@/lib/permissions";
 
@@ -46,7 +47,10 @@ export type NavGroup = { id: string; label?: string; items: NavItem[] };
 export const adminNavigation: NavGroup[] = [
   {
     id: "home",
-    items: [{ label: "Overview", href: "/", icon: LayoutDashboard, ready: true, keywords: "dashboard home" }],
+    items: [
+      { label: "Overview", href: "/", icon: LayoutDashboard, permissions: [P.School.View], ready: true, keywords: "dashboard home" },
+      { label: "My day", href: "/teach", icon: Sun, permissions: [P.Portals.Teacher], ready: true, keywords: "teacher registers today my classes leave" },
+    ],
   },
   {
     id: "people",
@@ -62,7 +66,7 @@ export const adminNavigation: NavGroup[] = [
     id: "teaching",
     label: "Teaching",
     items: [
-      { label: "Attendance", href: "/attendance", icon: CalendarCheck2, permissions: [P.Attendance.View, P.Attendance.Manage], keywords: "register absent present" },
+      { label: "Attendance", href: "/attendance", icon: CalendarCheck2, permissions: [P.Attendance.View, P.Attendance.Manage, P.Staff.ViewAttendance, P.Hr.ViewLeave], ready: true, keywords: "register absent present leave roll call" },
       { label: "Timetable", href: "/timetable", icon: CalendarRange, permissions: [P.Timetable.View], keywords: "schedule periods" },
       { label: "Assignments", href: "/assignments", icon: NotebookPen, permissions: [P.Assignments.View], keywords: "homework" },
       { label: "Examinations", href: "/exams", icon: Award, permissions: [P.Exams.View], module: "exams", keywords: "results marks report cards" },

@@ -123,10 +123,10 @@ export default function PoliciesPage() {
 
           <FormSection title="Attendance" description="How registers are kept and when guardians hear about absences.">
             <FieldRow cols={3}>
-              <Field label="Register" htmlFor="mode">
+              <Field label="Registers" htmlFor="mode" hint="The morning roll call is always the official daily record.">
                 <NativeSelect {...form.register("attendance.mode")}>
-                  <option value="Daily">Once a day</option>
-                  <option value="PeriodWise">Every period</option>
+                  <option value="Daily">Daily roll call</option>
+                  <option value="PeriodWise">Roll call and every period</option>
                 </NativeSelect>
               </Field>
               <Field label="Lock registers after" htmlFor="lock" hint="Later changes need an approved correction.">
@@ -138,13 +138,13 @@ export default function PoliciesPage() {
             </FieldRow>
             <div>
               <Controller control={form.control} name="attendance.notifyGuardiansOnAbsence" render={({ field }) => (
-                <SwitchRow label="Tell guardians about absences" hint="Sent once per day when the register is submitted." checked={field.value} onChange={field.onChange} disabled={!editable} />
+                <SwitchRow label="Tell guardians about absences" hint="One message per guardian per day, from that day's roll call. Messages are only sent once an SMS or WhatsApp provider is connected; until then they are recorded as not sent." checked={field.value} onChange={field.onChange} disabled={!editable} />
               )} />
               <Controller control={form.control} name="attendance.notifyGuardiansOnLate" render={({ field }) => (
                 <SwitchRow label="Tell guardians about late arrival" checked={field.value} onChange={field.onChange} disabled={!editable} />
               )} />
               <Controller control={form.control} name="attendance.excusedCountsAsPresent" render={({ field }) => (
-                <SwitchRow label="Count excused days as present" hint="Otherwise excused days are left out of the percentage." checked={field.value} onChange={field.onChange} disabled={!editable} />
+                <SwitchRow label="Count approved leave as present" hint="Otherwise days on leave are left out of attendance percentages." checked={field.value} onChange={field.onChange} disabled={!editable} />
               )} />
             </div>
           </FormSection>
