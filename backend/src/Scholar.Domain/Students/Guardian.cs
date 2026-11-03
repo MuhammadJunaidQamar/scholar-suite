@@ -47,16 +47,7 @@ public sealed class Guardian : TenantEntity, IHasAuditTrail
     public void SetPhone(string phone) => Phone = NormalizePhone(phone);
 
     /// <summary>Normalises Pakistani mobile numbers to +92XXXXXXXXXX so the same parent is recognised however it is typed.</summary>
-    public static string NormalizePhone(string phone)
-    {
-        var digits = new string(phone.Where(c => char.IsDigit(c) || c == '+').ToArray());
-        Guard.Against(digits.Count(char.IsDigit) < 7, "guardian.phone_invalid", "Enter a valid phone number.");
-        if (digits.StartsWith("+", StringComparison.Ordinal)) return digits;
-        if (digits.StartsWith("0092", StringComparison.Ordinal)) return "+" + digits[2..];
-        if (digits.StartsWith("92", StringComparison.Ordinal) && digits.Length == 12) return "+" + digits;
-        if (digits.StartsWith("03", StringComparison.Ordinal) && digits.Length == 11) return "+92" + digits[1..];
-        return digits;
-    }
+    public static string NormalizePhone(string phone) => PhoneNumber.Normalize(phone, "guardian.phone_invalid");
 }
 
 /// <summary>The link between a student and a guardian, with what that guardian may see and do for this child.</summary>

@@ -93,6 +93,7 @@ public static class Permissions
         public const string ViewBank = "staff.bank.view";
         public const string ViewAttendance = "staff.attendance.view";
         public const string RecordAttendance = "staff.attendance.record";
+        public const string ApproveAttendance = "staff.attendance.approve";
     }
 
     public static class Hr
@@ -327,22 +328,28 @@ public static class PermissionCatalog
             P(Permissions.Attendance.Export, "Export attendance", "Export attendance data."),
             P(Permissions.Attendance.ManageLeave, "Manage student leave", "Approve or reject student leave requests."),
         ]),
-        new("staff", "Staff & HR", "hr",
+        // The staff directory, staff attendance and leave are core (every school has teachers and registers);
+        // contracts, recruitment and reviews belong to the optional HR module.
+        new("staff", "Staff & staff attendance", null,
         [
             P(Permissions.Staff.View, "View staff", "See staff directory and profiles."),
             P(Permissions.Staff.Create, "Add staff", "Create staff records."),
-            P(Permissions.Staff.Update, "Edit staff", "Change staff details, assignments and contracts."),
+            P(Permissions.Staff.Update, "Edit staff", "Change staff details, assignments and sign-in access."),
             P(Permissions.Staff.Delete, "Delete staff", "Delete staff records created in error."),
             P(Permissions.Staff.Export, "Export staff", "Export staff lists."),
             P(Permissions.Staff.ManageDocuments, "Manage staff documents", "Upload and remove staff documents."),
-            P(Permissions.Staff.ViewBank, "View bank details", "See staff bank account details.", true),
-            P(Permissions.Staff.ViewAttendance, "View staff attendance", "See staff attendance."),
-            P(Permissions.Staff.RecordAttendance, "Record staff attendance", "Mark staff attendance."),
+            P(Permissions.Staff.ViewAttendance, "View staff attendance", "See staff registers and attendance reports."),
+            P(Permissions.Staff.RecordAttendance, "Record staff attendance", "Mark the daily staff register."),
+            P(Permissions.Staff.ApproveAttendance, "Approve staff attendance corrections", "Approve changes to locked staff attendance."),
             P(Permissions.Hr.ViewLeave, "View staff leave", "See staff leave requests and balances."),
             P(Permissions.Hr.ApproveLeave, "Approve staff leave", "Approve or reject staff leave."),
+            P(Permissions.Hr.Configure, "Configure leave & HR", "Leave types, departments and designations."),
+        ]),
+        new("hr", "HR", "hr",
+        [
+            P(Permissions.Staff.ViewBank, "View bank details", "See staff bank account details.", true),
             P(Permissions.Hr.Recruitment, "Manage recruitment", "Manage openings and applicants."),
             P(Permissions.Hr.Performance, "Manage performance reviews", "Record and view performance reviews.", true),
-            P(Permissions.Hr.Configure, "Configure HR", "Leave types, departments and designations."),
         ]),
         new("payroll", "Payroll", "payroll",
         [

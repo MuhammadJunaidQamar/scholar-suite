@@ -52,7 +52,9 @@ internal sealed class SectionConfiguration : IEntityTypeConfiguration<Section>
         b.HasOne(s => s.Room).WithMany().HasForeignKey(s => s.RoomId);
         b.HasOne<Campus>().WithMany().HasForeignKey(s => s.CampusId);
         b.HasOne<SubjectGroup>().WithMany().HasForeignKey(s => s.SubjectGroupId);
+        b.HasOne<Domain.Staffing.StaffMember>().WithMany().HasForeignKey(s => s.ClassTeacherId).OnDelete(DeleteBehavior.SetNull);
         b.HasIndex(s => new { s.AcademicYearId, s.CampusId, s.GradeId, s.Name }).IsUnique();
+        b.HasIndex(s => s.ClassTeacherId);
     }
 }
 
@@ -79,6 +81,7 @@ internal sealed class DepartmentConfiguration : IEntityTypeConfiguration<Departm
         b.Property(d => d.Name).HasMaxLength(100);
         b.Property(d => d.Description).HasMaxLength(500);
         b.HasIndex(d => new { d.SchoolId, d.Code }).IsUnique();
+        // No foreign key to staff: staff already reference departments, and a cycle would block bulk deletes/resets.
     }
 }
 

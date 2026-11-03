@@ -168,6 +168,8 @@ public sealed class Section : TenantEntity, IHasAuditTrail
     public Guid? RoomId { get; set; }
     public Room? Room { get; private set; }
     public Guid? SubjectGroupId { get; set; }
+    /// <summary>The staff member who takes the daily register and looks after the section.</summary>
+    public Guid? ClassTeacherId { get; set; }
     public bool IsActive { get; set; } = true;
 
     public string DisplayName => Grade is null ? Name : $"{Grade.Name} – {Name}";

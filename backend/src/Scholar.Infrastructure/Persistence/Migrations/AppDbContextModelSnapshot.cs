@@ -1947,6 +1947,10 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("capacity");
 
+                    b.Property<Guid?>("ClassTeacherId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("class_teacher_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -1994,6 +1998,9 @@ namespace Scholar.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CampusId")
                         .HasDatabaseName("ix_sections_campus_id");
+
+                    b.HasIndex("ClassTeacherId")
+                        .HasDatabaseName("ix_sections_class_teacher_id");
 
                     b.HasIndex("GradeId")
                         .HasDatabaseName("ix_sections_grade_id");
@@ -2528,6 +2535,271 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_schools_code");
 
                     b.ToTable("schools", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Staffing.SectionSubjectTeacher", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_id");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_section_subject_teachers");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_section_subject_teachers_school_id");
+
+                    b.HasIndex("StaffId")
+                        .HasDatabaseName("ix_section_subject_teachers_staff_id");
+
+                    b.HasIndex("SubjectId")
+                        .HasDatabaseName("ix_section_subject_teachers_subject_id");
+
+                    b.HasIndex("SectionId", "SubjectId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_section_subject_teachers_section_id_subject_id");
+
+                    b.ToTable("section_subject_teachers", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Staffing.StaffMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CampusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("campus_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<Guid?>("DepartmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("department_id");
+
+                    b.Property<Guid?>("DesignationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("designation_id");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("EmployeeNumber")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("employee_number");
+
+                    b.Property<string>("EmploymentType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("employment_type");
+
+                    b.Property<DateOnly?>("ExitDate")
+                        .HasColumnType("date")
+                        .HasColumnName("exit_date");
+
+                    b.Property<string>("ExitReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("exit_reason");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(210)
+                        .HasColumnType("character varying(210)")
+                        .HasColumnName("full_name")
+                        .HasComputedColumnSql("trim(first_name || ' ' || last_name)", true);
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("gender");
+
+                    b.Property<DateOnly>("JoinDate")
+                        .HasColumnType("date")
+                        .HasColumnName("join_date");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("NationalId")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("national_id");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<Guid?>("PhotoFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("photo_file_id");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("StaffType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("staff_type");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "Scholar.Domain.Staffing.StaffMember.Address#Address", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("City")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("address_city");
+
+                            b1.Property<string>("CountryCode")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)")
+                                .HasColumnName("address_country_code");
+
+                            b1.Property<string>("Line1")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("address_line1");
+
+                            b1.Property<string>("Line2")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("address_line2");
+
+                            b1.Property<string>("PostalCode")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("address_postal_code");
+
+                            b1.Property<string>("Province")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("address_province");
+                        });
+
+                    b.HasKey("Id")
+                        .HasName("pk_staff");
+
+                    b.HasIndex("CampusId")
+                        .HasDatabaseName("ix_staff_campus_id");
+
+                    b.HasIndex("DepartmentId")
+                        .HasDatabaseName("ix_staff_department_id");
+
+                    b.HasIndex("DesignationId")
+                        .HasDatabaseName("ix_staff_designation_id");
+
+                    b.HasIndex("FullName")
+                        .HasDatabaseName("ix_staff_full_name_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("FullName"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("FullName"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex("PhotoFileId")
+                        .HasDatabaseName("ix_staff_photo_file_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_staff_user_id");
+
+                    b.HasIndex("SchoolId", "EmployeeNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_staff_school_id_employee_number");
+
+                    b.HasIndex("SchoolId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_staff_school_id_user_id")
+                        .HasFilter("user_id IS NOT NULL");
+
+                    b.HasIndex("SchoolId", "Status", "CampusId")
+                        .HasDatabaseName("ix_staff_school_id_status_campus_id");
+
+                    b.ToTable("staff", (string)null);
                 });
 
             modelBuilder.Entity("Scholar.Domain.Students.EmergencyContact", b =>
@@ -3766,6 +4038,12 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_sections_campuses_campus_id");
 
+                    b.HasOne("Scholar.Domain.Staffing.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("ClassTeacherId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_sections_staff_class_teacher_id");
+
                     b.HasOne("Scholar.Domain.Organization.Grade", "Grade")
                         .WithMany()
                         .HasForeignKey("GradeId")
@@ -3853,6 +4131,78 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_number_sequence_counters_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Staffing.SectionSubjectTeacher", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_section_subject_teachers_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Section", null)
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_section_subject_teachers_sections_section_id");
+
+                    b.HasOne("Scholar.Domain.Staffing.StaffMember", null)
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_section_subject_teachers_staff_staff_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Subject", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_section_subject_teachers_subjects_subject_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Staffing.StaffMember", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.Campus", null)
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_campuses_campus_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Department", null)
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_staff_departments_department_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Designation", null)
+                        .WithMany()
+                        .HasForeignKey("DesignationId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_staff_designations_designation_id");
+
+                    b.HasOne("Scholar.Domain.Documents.StoredFile", null)
+                        .WithMany()
+                        .HasForeignKey("PhotoFileId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_staff_stored_files_photo_file_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_staff_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_staff_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Scholar.Domain.Students.EmergencyContact", b =>

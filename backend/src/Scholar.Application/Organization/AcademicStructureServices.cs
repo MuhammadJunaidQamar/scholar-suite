@@ -182,7 +182,7 @@ public sealed record ReorderGradesRequest(IReadOnlyList<Guid> OrderedIds);
 
 public sealed record SectionDto(Guid Id, Guid AcademicYearId, Guid CampusId, string CampusName, Guid GradeId, string GradeName,
     int GradeOrder, string Name, string DisplayName, int Capacity, Guid? RoomId, string? RoomName, Guid? SubjectGroupId,
-    bool IsActive, int Enrolled);
+    bool IsActive, int Enrolled, Guid? ClassTeacherId, string? ClassTeacherName);
 
 public sealed record SaveSectionRequest(Guid AcademicYearId, Guid CampusId, Guid GradeId, string Name, int Capacity,
     Guid? RoomId, Guid? SubjectGroupId, bool IsActive = true);
@@ -333,7 +333,8 @@ public sealed class SectionService(IAppDbContext db, IAccessContext access)
                 db.Campuses.Where(c => c.Id == s.CampusId).Select(c => c.Name).First(),
                 s.GradeId, s.Grade.Name, s.Grade.LevelOrder, s.Name, s.Grade.Name + " – " + s.Name, s.Capacity, s.RoomId,
                 s.Room != null ? s.Room.Name : null, s.SubjectGroupId, s.IsActive,
-                db.Enrollments.Count(e => e.SectionId == s.Id && e.Status == Domain.Students.EnrollmentStatus.Active)))
+                db.Enrollments.Count(e => e.SectionId == s.Id && e.Status == Domain.Students.EnrollmentStatus.Active),
+                s.ClassTeacherId, db.Staff.Where(t => t.Id == s.ClassTeacherId).Select(t => t.FullName).FirstOrDefault()))
             .ToListAsync(ct);
     }
 

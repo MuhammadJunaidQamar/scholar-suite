@@ -14,6 +14,7 @@ using Scholar.Domain.Common;
 using Scholar.Domain.Identity;
 using Scholar.Domain.Organization;
 using Scholar.Domain.Platform;
+using Scholar.Domain.Staffing;
 using Scholar.Domain.Students;
 
 namespace Scholar.Infrastructure.Persistence;
@@ -63,6 +64,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ITenant
     public DbSet<AdmissionApplication> AdmissionApplications => Set<AdmissionApplication>();
     public DbSet<ApplicationStatusChange> ApplicationStatusChanges => Set<ApplicationStatusChange>();
     public DbSet<ApplicationAssessment> ApplicationAssessments => Set<ApplicationAssessment>();
+    public DbSet<StaffMember> Staff => Set<StaffMember>();
+    public DbSet<SectionSubjectTeacher> SectionSubjectTeachers => Set<SectionSubjectTeacher>();
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     public async Task<T> InTransactionAsync<T>(Func<CancellationToken, Task<T>> work,

@@ -8,6 +8,7 @@ using Scholar.Application.Students;
 using Scholar.Application.Identity;
 using Scholar.Application.Organization;
 using Scholar.Application.Platform;
+using Scholar.Application.Staffing;
 
 namespace Scholar.Application;
 
@@ -49,6 +50,10 @@ public static class DependencyInjection
         services.AddScoped<FileService>();
         services.AddScoped<AdmissionService>();
         services.AddScoped<PublicAdmissionService>();
+
+        // Staff
+        services.AddScoped<StaffService>();
+        services.AddScoped<TeachingAssignmentService>();
 
         // Platform
         services.AddScoped<SchoolProvisioningService>();

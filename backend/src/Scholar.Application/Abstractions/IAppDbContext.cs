@@ -8,6 +8,7 @@ using Scholar.Domain.Auditing;
 using Scholar.Domain.Identity;
 using Scholar.Domain.Organization;
 using Scholar.Domain.Platform;
+using Scholar.Domain.Staffing;
 using Scholar.Domain.Students;
 
 namespace Scholar.Application.Abstractions;
@@ -64,6 +65,10 @@ public interface IAppDbContext
     DbSet<AdmissionApplication> AdmissionApplications { get; }
     DbSet<ApplicationStatusChange> ApplicationStatusChanges { get; }
     DbSet<ApplicationAssessment> ApplicationAssessments { get; }
+
+    // Staff
+    DbSet<StaffMember> Staff { get; }
+    DbSet<SectionSubjectTeacher> SectionSubjectTeachers { get; }
 
     DatabaseFacade Database { get; }
 
