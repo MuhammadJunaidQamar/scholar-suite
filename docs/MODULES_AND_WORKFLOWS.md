@@ -86,7 +86,8 @@ Application:
 
 - **Employee lifecycle:** Recruitment (opening → applicant pipeline → Hired creates a staff record) →
   probation → confirmation → active → leave → exit (resigned/terminated/retired; portal access revoked).
-- **Leave:** request → approval by HR/Principal → balance deducted; approved leave shows in staff attendance.
+- **Leave:** request (self-service or by HR) → approval by someone else holding `hr.leave.approve` → counts against
+  the leave type's yearly allowance; approved leave shows on the staff register (see H).
 - **Payroll run** for a month:
   1. *Draft:* select period; system snapshots each active staff member's salary structure.
   2. *Process:* compute earnings (basic + allowances), deductions (fixed/percent, loan installments,
@@ -112,15 +113,39 @@ Application:
 
 ## H. Attendance
 
-- **Daily register** per section per date (or per period for period-wise schools). Opening a register
-  pre-fills everyone as *Present*, students on approved leave as *Excused*; the teacher only touches exceptions.
-  Keyboard: ↑/↓ to move, P/A/L/E to set; "mark all" actions; one save submits the register.
-- **Rules:** cannot take attendance on holidays/non-working days (override with permission); future dates blocked;
-  submitted registers are editable by the taker until locked (end of day + configurable grace); after lock,
-  changes go through **corrections** requiring `attendance.approve`.
-- **Notifications:** on submit, guardians of absent (and optionally late) students are notified once per day.
-- **Percentages:** present-equivalent ÷ countable days; Excused can be configured to count or be excluded.
-- **Leave requests:** guardian or office submits → class teacher/admin approves → future registers auto-mark Excused.
+- **Daily roll call** per section per date, taken by the section's **class teacher** (or the office, holding
+  `attendance.manage`, for any section in its campus scope). In **period-wise** schools the subject teachers also take
+  a register for each lesson; the roll call stays the official daily record (percentages, alerts, reports).
+- Opening a register pre-fills everyone as *Present*, students on approved leave as *Leave* and suspended students as
+  *Absent*; the teacher marks exceptions. Keyboard: **P** present, **T** late, **A** absent, **L** leave; ↑/↓ move.
+  Late arrivals carry a time, any non-present mark a note. One save submits the register.
+- **Rules:** no registers for future days; holidays and weekly offs refuse a register unless the office deliberately
+  opens a make-up day; dates outside the section's academic year are refused. A register locks
+  `lock_after_hours` (default 24) after its day ends; until then the taker or office edits it directly (with
+  optimistic concurrency), afterwards only through a **correction**. Teachers cannot take a register that is already
+  past its lock; the office can (late entry).
+- **Corrections:** requested from the locked register with a reason; nothing changes until someone with
+  `attendance.approve` approves. An approver's own correction applies at once and stays on record. Approval
+  refuses a correction whose marks changed since it was asked (e.g. leave was approved meanwhile).
+- **Guardian alerts:** when *today's* roll call marks a student Absent (and Late, if enabled), one message per
+  guardian, per channel they accept (SMS, WhatsApp, email), per day, is written to the outbox in the register's
+  transaction and handed to the channel's provider. With no provider connected every message is recorded as
+  **Not sent** with the reason — the call list shows families who were *not* told. Correcting the absence before
+  sending cancels the message; registers for earlier days never alert ("absent today" would be false).
+- **Leave:** the office records a family's application (phone, note) and approves it, or leaves it pending.
+  Approval turns absences already recorded inside the leave into Leave and cancels unsent alerts; later registers
+  start those days as Leave. Cancelling an approved leave puts its Leave marks back to Absent.
+- **Percentages:** attended (present + late, plus leave when the school counts it) ÷ counted days (leave excluded
+  unless counted). Reports: today's overview, absentee call list, monthly register (CSV/XLSX), a student's year
+  (calendar, months, subjects, leave), students below the minimum, daily trend.
+- **Staff register:** one row per staff member per day, kept by `staff.attendance.record`; statuses Present, Late,
+  Half day, Absent, On leave, On duty (board exams, training — counts as attended); check-in/out times. Locks like
+  student registers. Staff may ask for corrections to their own days; `staff.attendance.approve` decides, never
+  their own.
+- **Staff leave:** self-service from *My day* or recorded by HR; working days only (holidays and weekly offs are free;
+  half days count 0.5); yearly allowances per leave type within the leave year (the academic year containing it);
+  requests beyond the balance are refused. Nobody approves their own leave. Approval marks the staff register
+  On leave for days already passed.
 
 ## I. Finance
 

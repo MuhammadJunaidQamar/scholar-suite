@@ -178,6 +178,11 @@ scripts/                      developer setup (database bootstrap, seeding helpe
   run on multiple instances.
 * Jobs: dispatch notifications, scheduled announcements, daily late-fee application, overdue library
   checks, low-stock alerts, fee reminders.
+* **Implemented (M5):** `outbound_messages` is written in the same transaction as the event that causes it (e.g. a
+  register), then `MessageDispatcher` hands each message to the `IMessageChannelProvider` for its channel right after
+  commit. `PendingMessageSweeper` (hosted service, every minute) re-dispatches anything left Pending — for example if
+  the process stopped between commit and dispatch. With no provider registered a message is marked **NotSent** with
+  the reason; `Queued`, `Sent` and `Delivered` are only ever set from what a provider reports.
 
 ## 10. Notifications
 
@@ -185,8 +190,9 @@ scripts/                      developer setup (database bootstrap, seeding helpe
 * Channels: in-app, email, SMS, WhatsApp. Each has a provider interface (`IEmailProvider`, `ISmsProvider`,
   `IWhatsAppProvider`) selected by configuration. Development providers write to the log and mark messages
   **Sent (unconfirmed)** — never Delivered.
-* Status model: `Queued → Sending → Sent → Delivered | Failed | Undeliverable`. Only provider callbacks
-  (webhook endpoints, signature-verified) move a message to Delivered.
+* Status model (implemented): `Pending → NotSent` (no provider) or `Pending → Queued` (provider accepted) `→ Sent →
+  Delivered`, with `Failed` and `Cancelled` (stopped before leaving the school). Only provider reports move a message
+  past Queued; development uses no provider at all, so nothing is ever shown as sent.
 
 ## 11. Files and documents
 

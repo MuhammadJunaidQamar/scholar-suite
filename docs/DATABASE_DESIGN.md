@@ -92,8 +92,10 @@ the executable form of this document.
 | `staff_qualifications`, `staff_employment_history`, `staff_contracts` | degree/institution/year…; previous employers; contract type, dates, salary, file |
 | `job_openings`, `job_applicants` | recruitment pipeline (Applied/Shortlisted/Interview/Offered/Hired/Rejected) |
 | `section_subject_teachers` | `section_id`, `subject_id`, `staff_id`; `ux (section_id, subject_id)` |
-| `staff_attendance` | `staff_id`, `date`, `status` (Present/Absent/Late/HalfDay/OnLeave/Holiday), `check_in`, `check_out`, `source`; `ux (staff_id, date)` |
-| `leave_types`, `staff_leave_balances`, `staff_leave_requests` | entitlement per year; requests `from_date`, `to_date`, `days`, `status` (Pending/Approved/Rejected/Cancelled), approver |
+| `staff_attendance_records` | `staff_id`, `campus_id`, `date`, `status` (Present/Late/HalfDay/Absent/OnLeave/OnDuty), `check_in`, `check_out`, `remark`, `leave_request_id null`, `xmin`; `ux (staff_id, date)`; changes audited (creation is not, to keep the audit log proportionate) |
+| `staff_attendance_corrections` | `staff_id`, `date`, `from_status null`, `to_status`, `check_in`, `check_out`, `reason`, `requested_by_self`, `status` (Pending/Approved/Rejected/Withdrawn), `decided_by`, `decided_at`, `decision_note`; nobody decides their own |
+| `leave_types` | `code` (ux per school), `name`, `annual_days null` (null = no limit), `is_paid`, `requires_document`, `is_active`, `sort_order` |
+| `staff_leave_requests` | `staff_id`, `leave_type_id`, `from_date`, `to_date`, `half_day`, `days` (working days, fixed when requested), `reason`, `requested_by_self`, `document_file_id`, `status` (Pending/Approved/Rejected/Cancelled), `decided_by`, `decided_at`, `decision_note`; balances are computed per leave year (the academic year containing the leave), not stored |
 | `performance_reviews` | `staff_id`, `period_label`, `reviewer_staff_id`, `rating`, `strengths`, `improvements`, `goals` |
 | `salary_components` | `name`, `code`, `kind` (Earning/Deduction), `calculation` (Fixed/PercentOfBasic), `default_value`, `is_taxable` |
 | `salary_structures` / `salary_structure_lines` | per staff, `effective_from`, `basic_salary`; lines component + amount/percent |
@@ -119,13 +121,16 @@ the executable form of this document.
 
 ## 9. Attendance
 
+Statuses are fixed (`Present`, `Late`, `Absent`, `Leave`) so every report means the same thing in every school; the
+school decides whether Leave counts as attended or is left out of percentages (`settings.attendance`).
+
 | Table | Key columns / constraints |
 |---|---|
-| `attendance_status_definitions` | `code` (P/A/L/E/H…), `name`, `color`, `counts_as` (Present/Absent/Late/Excused/Half/Ignore), `is_system`, `sort_order`; `ux (school_id, code)` |
-| `attendance_registers` | `section_id`, `date`, `bell_period_id null` (null = daily), `subject_id null`, `status` (Open/Submitted/Locked), `taken_by`, `submitted_at`; `ux (section_id, date, bell_period_id) nulls not distinct` |
-| `attendance_records` | `register_id`, `student_id`, `status_id`, `remark`, `minutes_late`; `ux (register_id, student_id)`; `ix (student_id, register_id)` |
-| `attendance_corrections` | `record_id`, `from_status_id`, `to_status_id`, `reason`, `status` (Pending/Approved/Rejected), `requested_by`, `decided_by` |
-| `student_leave_requests` | `student_id`, `from_date`, `to_date`, `reason`, `kind`, `requested_by_user_id`, `status`, `decided_by`, `decision_note` |
+| `attendance_registers` | `section_id`, `academic_year_id`, `campus_id`, `date`, `period null` (null = daily roll call; 1–16 = teaching period), `subject_id null`, `taken_by_staff_id null`, `note`, `xmin`; partial unique indexes `ux_attendance_registers_daily (section_id, date) WHERE period IS NULL` and `ux_attendance_registers_period (section_id, date, period) WHERE period IS NOT NULL`; who took it and when are the audit stamps |
+| `attendance_records` | `register_id` (cascade), `student_id`, `status`, `remark`, `arrived_at` (late), `leave_request_id null`; `ux (register_id, student_id)`, `ix (student_id, status)`; changes audited field by field, creation not repeated per student |
+| `attendance_corrections` / `attendance_correction_items` | per locked register: `reason`, `status` (Pending/Approved/Rejected/Withdrawn), `decided_by`, `decided_at`, `decision_note`; items `student_id`, `from_status null`, `to_status`, `remark`; applying refuses items whose mark changed since the request |
+| `student_leave_requests` | `student_id`, `from_date`, `to_date` (≤ 120 days), `kind` (Sick/Family/Travel/Religious/Other), `reason`, `requested_by` (free text: who applied and how), `document_file_id`, `status` (Pending/Approved/Rejected/Cancelled), `decided_by`, `decided_at`, `decision_note` |
+| `bell_schedules` / `bell_periods` | one schedule per campus (`ux campus_id`); periods `sequence`, `number null` (null = break), `name`, `start_time`, `end_time` (`ck end > start`) |
 
 ## 10. Finance
 
@@ -183,7 +188,7 @@ the executable form of this document.
 | `notifications` | in-app inbox: `user_id`, `category`, `title`, `body`, `link`, `read_at` |
 | `notification_templates` | `key`, `channel`, `subject`, `body`, `is_active`; `ux (school_id, key, channel)` |
 | `notification_preferences` | `user_id`, `category`, `channel`, `enabled` |
-| `outbound_messages` | `channel` (Email/Sms/WhatsApp), `to_address`, `recipient_user_id`, `template_key`, `subject`, `body`, `status` (Queued/Sending/Sent/Delivered/Failed/Undeliverable/Cancelled), `provider`, `provider_message_id`, `attempts`, `next_attempt_at`, `last_error`, `scheduled_for`, `sent_at`, `delivered_at`, `source_type`, `source_id`; `ix (status, next_attempt_at)` |
+| `outbound_messages` | the outbox: `channel` (Sms/WhatsApp/Email), `recipient`, `recipient_name`, `purpose` (e.g. `attendance.absent`), `subject`, `body`, `dedup_key` (`ux (school_id, dedup_key)` — "notify once" is a database guarantee), `status` (Pending/NotSent/Queued/Sent/Delivered/Failed/Cancelled), `status_detail`, `provider`, `provider_message_id`, `attempts`, `status_changed_at`, `guardian_id`, `student_id`, `staff_id`, `related_id`; partial index on Pending. Only a provider moves a message past NotSent |
 | `message_delivery_events` | provider callbacks / attempts log |
 | `conversations` / `conversation_participants` / `conversation_messages` | guardian–teacher threads scoped to a student |
 

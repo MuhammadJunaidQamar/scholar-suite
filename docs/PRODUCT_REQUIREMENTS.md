@@ -143,5 +143,9 @@ in components.
 - Online payment gateways (e.g. 1Link, JazzCash, Easypaisa, card acquirers) and SMS/WhatsApp vendors
   are integrated through provider interfaces; the reference implementation ships development
   providers that record intent honestly and never claim delivery or settlement.
+- **Attendance (M5):** statuses are fixed (Present, Late, Absent, Leave) rather than school-defined codes, so
+  percentages and exports mean the same everywhere; schools choose whether Leave counts as attended. The morning roll
+  call is the official daily record even in period-wise schools. Guardian alerts go out for same-day registers only.
+  The staff leave year is the academic year containing the leave (calendar year when no year covers it).
 - PDF generation uses QuestPDF (free Community licence below USD 1M annual revenue; a commercial
   licence is required above that threshold — flagged for the business).

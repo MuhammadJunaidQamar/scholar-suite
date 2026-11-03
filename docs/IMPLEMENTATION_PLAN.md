@@ -47,8 +47,12 @@ Each bullet is roughly one commit (conventional commit message in brackets).
 - Students & guardians APIs + list/profile/forms, import/export (`feat(students): …`).
 - Admissions inquiries/applications/assessments/decisions/enrollment, online application (`feat(admissions): …`).
 
-### M5 — Attendance
-- Status definitions, registers, fast entry UI, corrections, leave, reports, absence alerts (`feat(attendance): …`).
+### M5 — Attendance ✅ (2026-11-03)
+- Staff directory with class/subject teacher assignments (brought forward from M7: registers need teachers).
+- Daily and period registers, fast keyboard entry, locking, corrections with approval, student leave, staff register,
+  staff corrections, staff leave with allowances, bell times, reports and exports, teacher's *My day*.
+- Guardian absence alerts through a real outbox whose states only a provider can advance (no provider is bundled;
+  messages are recorded as not sent). Fixed statuses (Present/Late/Absent/Leave) instead of configurable codes.
 
 ### M6 — Finance
 - Chart of accounts, registers, bank accounts, ledger posting with DB guards (`feat(finance): ledger`).
@@ -59,7 +63,8 @@ Each bullet is roughly one commit (conventional commit message in brackets).
 - Integration tests for every posting rule and concurrency/idempotency guard.
 
 ### M7 — Staff, HR, payroll
-- Staff profiles, qualifications, contracts, documents, assignments, staff attendance, leave (`feat(staff): …`).
+- Qualifications, contracts, documents, bank details (staff directory, assignments, staff attendance and leave
+  shipped in M5) (`feat(staff): …`).
 - Salary structures, payroll runs, payslips, loans (`feat(payroll): …`).
 
 ### M8 — Academics
