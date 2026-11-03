@@ -35,6 +35,10 @@ internal static class AccessEndpoints
             })
             .RequirePermission(Permissions.Roles.Manage);
 
+        access.MapGet("/audit", ([AsParameters] AuditQuery query, AuditService audit, CancellationToken ct) => audit.ListAsync(query, ct))
+            .RequirePermission(Permissions.Audit.View)
+            .WithSummary("The school's audit trail, newest first.");
+
         access.MapGet("/members", ([AsParameters] MemberQuery query, MemberService members, CancellationToken ct) =>
                 members.ListAsync(query, ct))
             .RequirePermission(Permissions.Users.View);

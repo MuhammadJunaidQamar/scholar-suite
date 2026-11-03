@@ -100,10 +100,13 @@ internal sealed class AccessContext(IAppDbContext db, ICurrentUser currentUser, 
             ? null
             : assignments.Select(a => a.CampusId!.Value).ToHashSet();
 
+        // A portal comes from a role's own portal or an explicit grant on a non-locked role. The owner's blanket
+        // permissions do not make them a teacher, parent or student; those portals also need a linked record.
         var portals = assignments.Select(a => a.Portal).ToHashSet();
-        if (permissions.Contains(Permissions.Portals.Teacher)) portals.Add(Portal.Teacher);
-        if (permissions.Contains(Permissions.Portals.Family)) portals.Add(Portal.Family);
-        if (permissions.Contains(Permissions.Portals.Student)) portals.Add(Portal.Student);
+        var explicitGrants = assignments.Where(a => !a.IsLocked).SelectMany(a => a.Permissions).ToHashSet(StringComparer.Ordinal);
+        if (explicitGrants.Contains(Permissions.Portals.Teacher)) portals.Add(Portal.Teacher);
+        if (explicitGrants.Contains(Permissions.Portals.Family)) portals.Add(Portal.Family);
+        if (explicitGrants.Contains(Permissions.Portals.Student)) portals.Add(Portal.Student);
 
         var roleKeys = assignments.Where(a => a.Key is not null).Select(a => a.Key!).Distinct().ToList();
         return new EffectiveAccess(userId, schoolId, permissions, campuses, portals, roleKeys);

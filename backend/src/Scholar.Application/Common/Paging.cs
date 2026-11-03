@@ -8,14 +8,15 @@ public record PageQuery
 {
     private const int MaxPageSize = 200;
 
-    public int Page { get; init; } = 1;
-    public int PageSize { get; init; } = 25;
+    // Nullable so query-string binding treats them as optional (minimal APIs require non-nullable value types).
+    public int? Page { get; init; }
+    public int? PageSize { get; init; }
     public string? Sort { get; init; }
     public string? Dir { get; init; }
     public string? Search { get; init; }
 
-    public int SafePage => Page < 1 ? 1 : Page;
-    public int SafePageSize => PageSize switch { < 1 => 25, > MaxPageSize => MaxPageSize, _ => PageSize };
+    public int SafePage => Page is null or < 1 ? 1 : Page.Value;
+    public int SafePageSize => PageSize switch { null or < 1 => 25, > MaxPageSize => MaxPageSize, _ => PageSize.Value };
     public bool Descending => string.Equals(Dir, "desc", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Normalised search term (trimmed, null when empty).</summary>

@@ -24,8 +24,14 @@ public sealed class RoleService(IAppDbContext db, IAccessContext access)
                 MemberCount = db.UserRoles.Where(ur => ur.RoleId == r.Id).Select(ur => ur.UserId).Distinct().Count(),
             })
             .ToListAsync(ct);
-        return roles.Select(r => new RoleListItemDto(r.Id, r.Key, r.Name, r.Description, r.Portal, r.IsSystem, r.IsLocked,
-            r.IsLocked ? PermissionCatalog.Keys.Count : r.PermissionCount, r.MemberCount)).ToList();
+        // Built-in roles keep their natural rank (Owner, Administrator, Principal…); custom roles follow by name.
+        var rank = SystemRoles.All.Select((r, i) => (r.Key, i)).ToDictionary(x => x.Key, x => x.i);
+        return roles
+            .OrderBy(r => r.Portal)
+            .ThenBy(r => r.Key is not null && rank.TryGetValue(r.Key, out var i) ? i : int.MaxValue)
+            .ThenBy(r => r.Name)
+            .Select(r => new RoleListItemDto(r.Id, r.Key, r.Name, r.Description, r.Portal, r.IsSystem, r.IsLocked,
+                r.IsLocked ? PermissionCatalog.Keys.Count : r.PermissionCount, r.MemberCount)).ToList();
     }
 
     public async Task<RoleDetailDto> GetAsync(Guid id, CancellationToken ct)

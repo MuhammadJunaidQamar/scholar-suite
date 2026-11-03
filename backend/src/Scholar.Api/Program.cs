@@ -99,6 +99,7 @@ try
         .AllowAnonymous();
     api.MapAuthEndpoints();
     api.MapAccessEndpoints();
+    api.MapOrganizationEndpoints();
     api.MapPlatformEndpoints();
 
     app.Run();

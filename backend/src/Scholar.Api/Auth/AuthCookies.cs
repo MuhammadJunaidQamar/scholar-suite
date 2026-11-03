@@ -16,10 +16,16 @@ internal static class AuthCookies
     private const string AccessBase = "ss_at";
     private const string RefreshBase = "ss_rt";
     private const string CsrfBase = "ss_csrf";
+    /// <summary>
+    /// Non-secret "a session probably exists" hint (value "1") read by the web app's routing proxy to send signed-out
+    /// visitors to the sign-in page without a round trip. It grants nothing; the API remains the authority.
+    /// </summary>
+    private const string HintBase = "ss_s";
 
     public static string AccessName(AuthOptions o) => Prefixed(o, AccessBase);
     public static string RefreshName(AuthOptions o) => Prefixed(o, RefreshBase);
     public static string CsrfName(AuthOptions o) => Prefixed(o, CsrfBase);
+    public static string HintName(AuthOptions o) => Prefixed(o, HintBase);
 
     public static void Write(HttpContext http, AuthTokens tokens, AuthOptions o)
     {
@@ -29,6 +35,8 @@ internal static class AuthCookies
             SameSiteMode.Strict, tokens.RefreshTokenExpiresAt));
         http.Response.Cookies.Append(CsrfName(o), CsrfTokenForSession(tokens.SessionId, o), Options(o, "/", httpOnly: false,
             SameSiteMode.Strict, tokens.RefreshTokenExpiresAt));
+        http.Response.Cookies.Append(HintName(o), "1", Options(o, "/", httpOnly: true, SameSiteMode.Lax,
+            tokens.RefreshTokenExpiresAt));
     }
 
     public static void Clear(HttpContext http, AuthOptions o)
@@ -36,6 +44,7 @@ internal static class AuthCookies
         http.Response.Cookies.Delete(AccessName(o), Options(o, "/api", true, SameSiteMode.Lax, null));
         http.Response.Cookies.Delete(RefreshName(o), Options(o, "/api/auth", true, SameSiteMode.Strict, null));
         http.Response.Cookies.Delete(CsrfName(o), Options(o, "/", false, SameSiteMode.Strict, null));
+        http.Response.Cookies.Delete(HintName(o), Options(o, "/", true, SameSiteMode.Lax, null));
     }
 
     /// <summary>Ensures an anonymous visitor has a CSRF cookie (needed before signing in) and returns its value.</summary>

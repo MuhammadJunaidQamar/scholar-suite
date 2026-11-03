@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Scholar.Application.Abstractions;
 using Scholar.Application.Access;
 using Scholar.Application.Identity;
+using Scholar.Application.Organization;
 using Scholar.Application.Platform;
 
 namespace Scholar.Application;
@@ -20,6 +21,11 @@ public static class DependencyInjection
         services.AddScoped<MeService>();
         services.AddScoped<RoleService>();
         services.AddScoped<MemberService>();
+        services.AddScoped<AuditService>();
+
+        // Organization
+        services.AddScoped<ISchoolClock, SchoolClock>();
+        services.AddScoped<OverviewService>();
 
         // Platform
         services.AddScoped<SchoolProvisioningService>();
