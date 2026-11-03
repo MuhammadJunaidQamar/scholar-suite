@@ -7,7 +7,7 @@ import type { ColumnDef, RowSelectionState, VisibilityState } from "@tanstack/re
 import { ArrowRightLeft, Download, FileUp, GraduationCap, HeartPulse, Plus, UserRoundCog } from "lucide-react";
 import { useSession } from "@/lib/auth/session";
 import { P } from "@/lib/permissions";
-import { formatDate } from "@/lib/format";
+import { formatDate, todayIso } from "@/lib/format";
 import { useCampuses } from "@/lib/api/access";
 import { useGrades, useSections } from "@/lib/api/org";
 import {
@@ -58,6 +58,7 @@ function buildColumns(scope: StudentScope, multiCampus: boolean): ColumnDef<Stud
                   </Tooltip>
                 )}
                 {s.status === "Suspended" && <StatusBadge tone="warning" variant="soft">Suspended</StatusBadge>}
+                {s.status === "Active" && s.admissionDate > todayIso() && <StatusBadge tone="info" variant="soft">Joins {formatDate(s.admissionDate)}</StatusBadge>}
               </span>
               <span className="truncate font-mono text-xs text-ink-2">{s.admissionNumber}</span>
             </div>

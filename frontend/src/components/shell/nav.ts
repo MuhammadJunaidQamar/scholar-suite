@@ -54,7 +54,7 @@ export const adminNavigation: NavGroup[] = [
     items: [
       { label: "Students", href: "/students", icon: GraduationCap, permissions: [P.Students.View], ready: true, keywords: "pupils learners" },
       { label: "Guardians", href: "/guardians", icon: UsersRound, permissions: [P.Guardians.View], ready: true, keywords: "parents families" },
-      { label: "Admissions", href: "/admissions", icon: UserPlus, permissions: [P.Admissions.View], module: "admissions", keywords: "inquiries applications enrol" },
+      { label: "Admissions", href: "/admissions", icon: UserPlus, permissions: [P.Admissions.View], module: "admissions", ready: true, keywords: "inquiries applications enrol" },
       { label: "Staff", href: "/staff", icon: Briefcase, permissions: [P.Staff.View], module: "hr", keywords: "teachers employees hr" },
     ],
   },

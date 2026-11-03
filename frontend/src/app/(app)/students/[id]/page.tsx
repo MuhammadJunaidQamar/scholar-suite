@@ -7,7 +7,7 @@ import { ArrowRightLeft, Camera, HeartPulse, MoreHorizontal, Pencil, Trash2, Use
 import { ApiError } from "@/lib/api/client";
 import { useSession } from "@/lib/auth/session";
 import { P } from "@/lib/permissions";
-import { formatDate } from "@/lib/format";
+import { formatDate, todayIso } from "@/lib/format";
 import {
   ageFrom,
   studentStatusLabel,
@@ -126,6 +126,9 @@ export default function StudentProfilePage() {
               {studentStatusLabel[s.status]}
               {!current && s.statusChangedOn ? ` · ${formatDate(s.statusChangedOn)}` : ""}
             </StatusBadge>
+            {current && s.admissionDate > todayIso() && (
+              <StatusBadge tone="info" variant="soft">Joins {formatDate(s.admissionDate)}</StatusBadge>
+            )}
           </div>
           <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-ink-2">
             <span className="font-mono text-ink">{s.admissionNumber}</span>
