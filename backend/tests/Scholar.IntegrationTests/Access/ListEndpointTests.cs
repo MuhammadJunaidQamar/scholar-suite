@@ -29,6 +29,26 @@ public sealed class ListEndpointTests(ApiFactory factory) : IntegrationTest(fact
     }
 
     [Fact]
+    public async Task Paging_is_stable_when_many_rows_share_a_sort_value()
+    {
+        // Provisioning writes dozens of audit entries in one save, so they share a timestamp.
+        var school = await Factory.ProvisionSchoolAsync();
+        using var owner = Factory.CreateBrowserClient();
+        await owner.LoginAsync(school.Email, TestData.Password);
+
+        var first = await owner.GetJsonAsync<PagedResult<AuditEntryDto>>("/api/access/audit?pageSize=4");
+        Assert.True(first.Total > 12);
+        var seen = new List<Guid>();
+        for (var page = 1; page <= first.TotalPages; page++)
+        {
+            seen.AddRange((await owner.GetJsonAsync<PagedResult<AuditEntryDto>>($"/api/access/audit?pageSize=4&page={page}")).Items.Select(a => a.Id));
+        }
+
+        Assert.Equal(first.Total, seen.Count);
+        Assert.Equal(seen.Count, seen.Distinct().Count());
+    }
+
+    [Fact]
     public async Task Overview_and_campuses_reflect_the_provisioned_school()
     {
         var school = await Factory.ProvisionSchoolAsync();

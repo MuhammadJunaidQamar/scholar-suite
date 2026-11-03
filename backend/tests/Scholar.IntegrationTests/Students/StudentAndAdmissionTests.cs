@@ -84,6 +84,37 @@ public sealed class StudentAndAdmissionTests(ApiFactory factory) : IntegrationTe
     }
 
     [Fact]
+    public async Task Class_order_lists_sections_in_order_and_pages_never_repeat_students()
+    {
+        var (_, s, owner) = await SetupAsync();
+        using var _ = owner;
+        for (var i = 0; i < 7; i++)
+        {
+            // Identical names in two sections: every sort key ties, so only a stable tie-break keeps pages apart.
+            await (await owner.PostAsync("/api/students", NewStudent(i % 2 == 0 ? s.SectionB : s.SectionA, phone: $"0300 12345{i:00}")))
+                .EnsureSuccessWithBodyAsync();
+        }
+
+        var seen = new List<StudentListItemDto>();
+        for (var page = 1; page <= 4; page++)
+        {
+            seen.AddRange((await owner.GetJsonAsync<PagedResult<StudentListItemDto>>($"/api/students?sort=class&pageSize=2&page={page}")).Items);
+        }
+
+        Assert.Equal(7, seen.Select(x => x.Id).Distinct().Count());
+        Assert.Equal(["Class 5 – A", "Class 5 – A", "Class 5 – A", "Class 5 – B", "Class 5 – B", "Class 5 – B", "Class 5 – B"],
+            seen.Select(x => x.ClassName));
+
+        var byName = new List<Guid>();
+        for (var page = 1; page <= 3; page++)
+        {
+            byName.AddRange((await owner.GetJsonAsync<PagedResult<StudentListItemDto>>($"/api/students?sort=name&pageSize=3&page={page}")).Items.Select(x => x.Id));
+        }
+
+        Assert.Equal(7, byName.Distinct().Count());
+    }
+
+    [Fact]
     public async Task Full_sections_refuse_students_unless_overridden()
     {
         var (_, s, owner) = await SetupAsync(capacity: 1);

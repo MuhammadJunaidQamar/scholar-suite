@@ -38,7 +38,7 @@ public sealed partial class AuditService(IAppDbContext db, IAccessContext access
             .WhereIf(query.From is not null, a => a.OccurredAt >= Utc(query.From!.Value))
             .WhereIf(query.To is not null, a => a.OccurredAt < Utc(query.To!.Value.AddDays(1)));
 
-        var page = await logs.OrderByDescending(a => a.OccurredAt).ToPagedAsync(query, a => new
+        var page = await logs.OrderByDescending(a => a.OccurredAt).ThenByDescending(a => a.Id).ToPagedAsync(query, a => new
         {
             a.Id, a.OccurredAt, a.UserId,
             UserName = db.Users.Where(u => u.Id == a.UserId).Select(u => u.FirstName + " " + u.LastName).FirstOrDefault(),

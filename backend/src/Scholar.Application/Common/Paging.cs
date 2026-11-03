@@ -42,7 +42,19 @@ public static class QueryableExtensions
         var key = page.Sort is not null && map.ContainsKey(page.Sort) ? page.Sort : defaultKey;
         var descending = page.Sort is not null && map.ContainsKey(page.Sort) ? page.Descending : defaultDescending;
         var expression = map[key];
-        return descending ? query.OrderByDescending(expression) : query.OrderBy(expression);
+        var ordered = descending ? query.OrderByDescending(expression) : query.OrderBy(expression);
+
+        // Tie-break on the (time-ordered) key so pages never repeat or skip rows when many share a sort value,
+        // e.g. 30 students in the same class.
+        if (typeof(T).GetProperty("Id") is not { } id)
+        {
+            return ordered;
+        }
+
+        var row = Expression.Parameter(typeof(T), "row");
+        var byId = Expression.Lambda(Expression.Property(row, id), row);
+        return ordered.Provider.CreateQuery<T>(Expression.Call(typeof(Queryable), descending ? nameof(Queryable.ThenByDescending) : nameof(Queryable.ThenBy),
+            [typeof(T), id.PropertyType], ordered.Expression, Expression.Quote(byId)));
     }
 
     public static async Task<PagedResult<TOut>> ToPagedAsync<TIn, TOut>(this IQueryable<TIn> query, PageQuery page,

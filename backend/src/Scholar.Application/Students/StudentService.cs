@@ -26,7 +26,9 @@ public sealed class StudentService(IAppDbContext db, IAccessContext access, ISeq
             ["name"] = s => s.FullName,
             ["admissionNumber"] = s => s.AdmissionNumber,
             ["admissionDate"] = s => s.AdmissionDate,
-            ["class"] = s => db.Sections.Where(x => x.Id == s.CurrentSectionId).Select(x => (int?)x.Grade.LevelOrder).FirstOrDefault(),
+            // Grade order, then section name ("Class 5 – A" before "Class 5 – B"); the offset keeps the text sortable.
+            ["class"] = s => db.Sections.Where(x => x.Id == s.CurrentSectionId)
+                .Select(x => (x.Grade.LevelOrder + 10000).ToString() + x.Name).FirstOrDefault(),
         }, "name");
 
         return await sorted.ToPagedAsync(query, s => new StudentListItemDto(
