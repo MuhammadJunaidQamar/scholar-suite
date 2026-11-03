@@ -100,6 +100,8 @@ try
     api.MapAuthEndpoints();
     api.MapAccessEndpoints();
     api.MapOrganizationEndpoints();
+    api.MapStudentEndpoints();
+    api.MapAdmissionEndpoints();
     api.MapPlatformEndpoints();
 
     app.Run();

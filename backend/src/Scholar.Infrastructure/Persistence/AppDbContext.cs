@@ -7,11 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Scholar.Application.Abstractions;
 using Scholar.Domain.Access;
+using Scholar.Domain.Admissions;
+using Scholar.Domain.Documents;
 using Scholar.Domain.Auditing;
 using Scholar.Domain.Common;
 using Scholar.Domain.Identity;
 using Scholar.Domain.Organization;
 using Scholar.Domain.Platform;
+using Scholar.Domain.Students;
 
 namespace Scholar.Infrastructure.Persistence;
 
@@ -47,6 +50,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ITenant
     public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
     public DbSet<GradingScale> GradingScales => Set<GradingScale>();
     public DbSet<GradingBand> GradingBands => Set<GradingBand>();
+    public DbSet<Student> Students => Set<Student>();
+    public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<StudentStatusChange> StudentStatusChanges => Set<StudentStatusChange>();
+    public DbSet<StudentMedicalProfile> StudentMedicalProfiles => Set<StudentMedicalProfile>();
+    public DbSet<EmergencyContact> EmergencyContacts => Set<EmergencyContact>();
+    public DbSet<Guardian> Guardians => Set<Guardian>();
+    public DbSet<StudentGuardian> StudentGuardians => Set<StudentGuardian>();
+    public DbSet<StoredFile> StoredFiles => Set<StoredFile>();
+    public DbSet<AdmissionInquiry> AdmissionInquiries => Set<AdmissionInquiry>();
+    public DbSet<AdmissionApplication> AdmissionApplications => Set<AdmissionApplication>();
+    public DbSet<ApplicationStatusChange> ApplicationStatusChanges => Set<ApplicationStatusChange>();
+    public DbSet<ApplicationAssessment> ApplicationAssessments => Set<ApplicationAssessment>();
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     public async Task<T> InTransactionAsync<T>(Func<CancellationToken, Task<T>> work,

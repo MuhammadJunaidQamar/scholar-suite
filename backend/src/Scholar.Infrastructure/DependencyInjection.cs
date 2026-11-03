@@ -31,6 +31,9 @@ public static class DependencyInjection
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<ISequenceGenerator, SequenceGenerator>();
         services.AddScoped<Seeding.DemoSeeder>();
+        services.AddSingleton<Application.Documents.IFileStorage, Documents.LocalFileStorage>();
+        services.AddSingleton<Application.Common.ITabularExporter, Exports.TabularExporter>();
+        services.AddSingleton<Application.Common.ITabularReader, Exports.TabularReader>();
 
         return services;
     }

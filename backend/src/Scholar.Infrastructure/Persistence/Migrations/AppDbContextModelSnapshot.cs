@@ -133,7 +133,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Access.Role", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -222,7 +221,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Access.UserRole", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -279,10 +277,518 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                     b.ToTable("user_roles", (string)null);
                 });
 
+            modelBuilder.Entity("Scholar.Domain.Admissions.AdmissionApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AcademicYearId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("academic_year_id");
+
+                    b.Property<string>("ApplicationNumber")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("application_number");
+
+                    b.Property<Guid>("CampusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("campus_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("decided_at");
+
+                    b.Property<Guid?>("DecidedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("decided_by");
+
+                    b.Property<string>("DecisionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("decision_note");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("gender");
+
+                    b.Property<Guid>("GradeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grade_id");
+
+                    b.Property<string>("GuardianEmail")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("guardian_email");
+
+                    b.Property<string>("GuardianFirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("guardian_first_name");
+
+                    b.Property<string>("GuardianLastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("guardian_last_name");
+
+                    b.Property<string>("GuardianNationalId")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("guardian_national_id");
+
+                    b.Property<string>("GuardianOccupation")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("guardian_occupation");
+
+                    b.Property<string>("GuardianPhone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("guardian_phone");
+
+                    b.Property<string>("GuardianRelationship")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("guardian_relationship");
+
+                    b.Property<Guid?>("InquiryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("inquiry_id");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("MiddleName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("middle_name");
+
+                    b.Property<string>("NationalId")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("national_id");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<DateOnly?>("OfferExpiresOn")
+                        .HasColumnType("date")
+                        .HasColumnName("offer_expires_on");
+
+                    b.Property<string>("PreviousResult")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("previous_result");
+
+                    b.Property<string>("PreviousSchoolClass")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("previous_school_class");
+
+                    b.Property<string>("PreviousSchoolName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("previous_school_name");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.Property<int?>("WaitlistRank")
+                        .HasColumnType("integer")
+                        .HasColumnName("waitlist_rank");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "Scholar.Domain.Admissions.AdmissionApplication.Address#Address", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("City")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("address_city");
+
+                            b1.Property<string>("CountryCode")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)")
+                                .HasColumnName("address_country_code");
+
+                            b1.Property<string>("Line1")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("address_line1");
+
+                            b1.Property<string>("Line2")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("address_line2");
+
+                            b1.Property<string>("PostalCode")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("address_postal_code");
+
+                            b1.Property<string>("Province")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("address_province");
+                        });
+
+                    b.HasKey("Id")
+                        .HasName("pk_admission_applications");
+
+                    b.HasIndex("AcademicYearId")
+                        .HasDatabaseName("ix_admission_applications_academic_year_id");
+
+                    b.HasIndex("CampusId")
+                        .HasDatabaseName("ix_admission_applications_campus_id");
+
+                    b.HasIndex("GradeId")
+                        .HasDatabaseName("ix_admission_applications_grade_id");
+
+                    b.HasIndex("InquiryId")
+                        .HasDatabaseName("ix_admission_applications_inquiry_id");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_admission_applications_student_id");
+
+                    b.HasIndex("SchoolId", "ApplicationNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_admission_applications_school_id_application_number");
+
+                    b.HasIndex("SchoolId", "GuardianPhone")
+                        .HasDatabaseName("ix_admission_applications_school_id_guardian_phone");
+
+                    b.HasIndex("SchoolId", "Status", "AcademicYearId")
+                        .HasDatabaseName("ix_admission_applications_school_id_status_academic_year_id");
+
+                    b.ToTable("admission_applications", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Admissions.AdmissionInquiry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AcademicYearId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("academic_year_id");
+
+                    b.Property<Guid?>("AssignedToUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_to_user_id");
+
+                    b.Property<Guid?>("CampusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("campus_id");
+
+                    b.Property<string>("ClosedReason")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("closed_reason");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<DateOnly?>("FollowUpOn")
+                        .HasColumnType("date")
+                        .HasColumnName("follow_up_on");
+
+                    b.Property<Guid?>("GradeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grade_id");
+
+                    b.Property<string>("GuardianName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("guardian_name");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StudentName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("student_name");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_admission_inquiries");
+
+                    b.HasIndex("AcademicYearId")
+                        .HasDatabaseName("ix_admission_inquiries_academic_year_id");
+
+                    b.HasIndex("CampusId")
+                        .HasDatabaseName("ix_admission_inquiries_campus_id");
+
+                    b.HasIndex("GradeId")
+                        .HasDatabaseName("ix_admission_inquiries_grade_id");
+
+                    b.HasIndex("SchoolId", "Phone")
+                        .HasDatabaseName("ix_admission_inquiries_school_id_phone");
+
+                    b.HasIndex("SchoolId", "Status", "FollowUpOn")
+                        .HasDatabaseName("ix_admission_inquiries_school_id_status_follow_up_on");
+
+                    b.ToTable("admission_inquiries", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Admissions.ApplicationAssessment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("application_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("location");
+
+                    b.Property<decimal?>("MaxScore")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("max_score");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("outcome");
+
+                    b.Property<DateTimeOffset>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_at");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<decimal?>("Score")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("numeric(7,2)")
+                        .HasColumnName("score");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_application_assessments");
+
+                    b.HasIndex("ApplicationId")
+                        .HasDatabaseName("ix_application_assessments_application_id");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_application_assessments_school_id");
+
+                    b.ToTable("application_assessments", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Admissions.ApplicationStatusChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("application_id");
+
+                    b.Property<DateTimeOffset>("ChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("changed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("FromStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("from_status");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("to_status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_application_status_changes");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_application_status_changes_school_id");
+
+                    b.HasIndex("ApplicationId", "ChangedAt")
+                        .HasDatabaseName("ix_application_status_changes_application_id_changed_at");
+
+                    b.ToTable("application_status_changes", (string)null);
+                });
+
             modelBuilder.Entity("Scholar.Domain.Auditing.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -345,10 +851,114 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                     b.ToTable("audit_logs", (string)null);
                 });
 
+            modelBuilder.Entity("Scholar.Domain.Documents.StoredFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("category");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("notes");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
+
+                    b.Property<string>("OwnerType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("owner_type");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("Sensitivity")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("sensitivity");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("sha256");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stored_files");
+
+                    b.HasIndex("StorageKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_stored_files_storage_key");
+
+                    b.HasIndex("SchoolId", "OwnerType", "OwnerId")
+                        .HasDatabaseName("ix_stored_files_school_id_owner_type_owner_id");
+
+                    b.ToTable("stored_files", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_stored_files_size", "size_bytes >= 0");
+                        });
+                });
+
             modelBuilder.Entity("Scholar.Domain.Identity.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -394,7 +1004,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Identity.SchoolMembership", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -448,7 +1057,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Identity.User", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -574,7 +1182,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Identity.UserSession", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -635,7 +1242,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.AcademicTerm", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -699,7 +1305,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.AcademicYear", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -768,7 +1373,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.CalendarEvent", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -869,7 +1473,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.Department", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -927,7 +1530,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.Designation", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -976,7 +1578,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.Grade", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1046,7 +1647,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.GradeSubject", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1122,7 +1722,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.GradingBand", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1198,7 +1797,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.GradingScale", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1251,7 +1849,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.Room", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1335,7 +1932,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.Section", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1424,7 +2020,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.Subject", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1500,7 +2095,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Organization.SubjectGroup", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1548,7 +2142,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Platform.Campus", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1655,7 +2248,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Platform.NumberSequence", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1726,7 +2318,6 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Platform.School", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
@@ -1888,6 +2479,816 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                     b.ToTable("schools", (string)null);
                 });
 
+            modelBuilder.Entity("Scholar.Domain.Students.EmergencyContact", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AlternatePhone")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("alternate_phone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("phone");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
+
+                    b.Property<string>("Relationship")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("relationship");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_emergency_contacts");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_emergency_contacts_school_id");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_emergency_contacts_student_id");
+
+                    b.ToTable("emergency_contacts", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.Enrollment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AcademicYearId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("academic_year_id");
+
+                    b.Property<Guid>("CampusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("campus_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<Guid>("GradeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("grade_id");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("RollNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("roll_number");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("SectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("section_id");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_enrollments");
+
+                    b.HasIndex("AcademicYearId")
+                        .HasDatabaseName("ix_enrollments_academic_year_id");
+
+                    b.HasIndex("CampusId")
+                        .HasDatabaseName("ix_enrollments_campus_id");
+
+                    b.HasIndex("GradeId")
+                        .HasDatabaseName("ix_enrollments_grade_id");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_enrollments_school_id");
+
+                    b.HasIndex("SectionId", "Status")
+                        .HasDatabaseName("ix_enrollments_section_id_status");
+
+                    b.HasIndex(new[] { "StudentId", "AcademicYearId" }, "ux_enrollments_one_active_per_year")
+                        .IsUnique()
+                        .HasDatabaseName("ix_enrollments_student_id_academic_year_id")
+                        .HasFilter("status = 'Active'");
+
+                    b.ToTable("enrollments", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_enrollments_dates", "end_date IS NULL OR end_date >= start_date");
+                        });
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.Guardian", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AlternatePhone")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("alternate_phone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Employer")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("employer");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(210)
+                        .HasColumnType("character varying(210)")
+                        .HasColumnName("full_name")
+                        .HasComputedColumnSql("trim(first_name || ' ' || last_name)", true);
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("NationalId")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("national_id");
+
+                    b.Property<bool>("NotifyByEmail")
+                        .HasColumnType("boolean")
+                        .HasColumnName("notify_by_email");
+
+                    b.Property<bool>("NotifyBySms")
+                        .HasColumnType("boolean")
+                        .HasColumnName("notify_by_sms");
+
+                    b.Property<bool>("NotifyByWhatsApp")
+                        .HasColumnType("boolean")
+                        .HasColumnName("notify_by_whats_app");
+
+                    b.Property<string>("Occupation")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("occupation");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("PreferredLanguage")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("preferred_language");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "Scholar.Domain.Students.Guardian.Address#Address", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("City")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("address_city");
+
+                            b1.Property<string>("CountryCode")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)")
+                                .HasColumnName("address_country_code");
+
+                            b1.Property<string>("Line1")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("address_line1");
+
+                            b1.Property<string>("Line2")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("address_line2");
+
+                            b1.Property<string>("PostalCode")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("address_postal_code");
+
+                            b1.Property<string>("Province")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("address_province");
+                        });
+
+                    b.HasKey("Id")
+                        .HasName("pk_guardians");
+
+                    b.HasIndex("FullName")
+                        .HasDatabaseName("ix_guardians_full_name_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("FullName"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("FullName"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_guardians_user_id");
+
+                    b.HasIndex("SchoolId", "NationalId")
+                        .HasDatabaseName("ix_guardians_school_id_national_id");
+
+                    b.HasIndex("SchoolId", "Phone")
+                        .HasDatabaseName("ix_guardians_school_id_phone");
+
+                    b.HasIndex("SchoolId", "UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_guardians_school_id_user_id")
+                        .HasFilter("user_id IS NOT NULL");
+
+                    b.ToTable("guardians", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.Student", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateOnly>("AdmissionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("admission_date");
+
+                    b.Property<string>("AdmissionNumber")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("admission_number");
+
+                    b.Property<string>("BloodGroup")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("blood_group");
+
+                    b.Property<Guid>("CampusId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("campus_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid?>("CurrentAcademicYearId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_academic_year_id");
+
+                    b.Property<Guid?>("CurrentSectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_section_id");
+
+                    b.Property<DateOnly>("DateOfBirth")
+                        .HasColumnType("date")
+                        .HasColumnName("date_of_birth");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("full_name")
+                        .HasComputedColumnSql("first_name || coalesce(' ' || middle_name, '') || ' ' || last_name", true);
+
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("gender");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("MedicalAlert")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("medical_alert");
+
+                    b.Property<string>("MiddleName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("middle_name");
+
+                    b.Property<string>("MotherTongue")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("mother_tongue");
+
+                    b.Property<string>("NationalId")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("national_id");
+
+                    b.Property<string>("Nationality")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("nationality");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("phone");
+
+                    b.Property<Guid?>("PhotoFileId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("photo_file_id");
+
+                    b.Property<string>("PlaceOfBirth")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("place_of_birth");
+
+                    b.Property<string>("PreviousSchoolClass")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("previous_school_class");
+
+                    b.Property<string>("PreviousSchoolName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("previous_school_name");
+
+                    b.Property<string>("RegistrationNumber")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("registration_number");
+
+                    b.Property<string>("Religion")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("religion");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("status");
+
+                    b.Property<DateOnly?>("StatusChangedOn")
+                        .HasColumnType("date")
+                        .HasColumnName("status_changed_on");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Address", "Scholar.Domain.Students.Student.Address#Address", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("City")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("address_city");
+
+                            b1.Property<string>("CountryCode")
+                                .HasMaxLength(2)
+                                .HasColumnType("character varying(2)")
+                                .HasColumnName("address_country_code");
+
+                            b1.Property<string>("Line1")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("address_line1");
+
+                            b1.Property<string>("Line2")
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("address_line2");
+
+                            b1.Property<string>("PostalCode")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("address_postal_code");
+
+                            b1.Property<string>("Province")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("address_province");
+                        });
+
+                    b.HasKey("Id")
+                        .HasName("pk_students");
+
+                    b.HasIndex("CampusId")
+                        .HasDatabaseName("ix_students_campus_id");
+
+                    b.HasIndex("CurrentAcademicYearId")
+                        .HasDatabaseName("ix_students_current_academic_year_id");
+
+                    b.HasIndex("CurrentSectionId")
+                        .HasDatabaseName("ix_students_current_section_id");
+
+                    b.HasIndex("FullName")
+                        .HasDatabaseName("ix_students_full_name_trgm");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("FullName"), "gin");
+                    NpgsqlIndexBuilderExtensions.HasOperators(b.HasIndex("FullName"), new[] { "gin_trgm_ops" });
+
+                    b.HasIndex("PhotoFileId")
+                        .HasDatabaseName("ix_students_photo_file_id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_students_user_id")
+                        .HasFilter("user_id IS NOT NULL");
+
+                    b.HasIndex("SchoolId", "AdmissionNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_students_school_id_admission_number");
+
+                    b.HasIndex("SchoolId", "NationalId")
+                        .HasDatabaseName("ix_students_school_id_national_id");
+
+                    b.HasIndex("SchoolId", "Status", "CampusId")
+                        .HasDatabaseName("ix_students_school_id_status_campus_id");
+
+                    b.ToTable("students", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.StudentGuardian", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<bool>("CanPickUp")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_pick_up");
+
+                    b.Property<bool>("CanViewAttendance")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_view_attendance");
+
+                    b.Property<bool>("CanViewFees")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_view_fees");
+
+                    b.Property<bool>("CanViewResults")
+                        .HasColumnType("boolean")
+                        .HasColumnName("can_view_results");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("GuardianId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("guardian_id");
+
+                    b.Property<bool>("IsEmergencyContact")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_emergency_contact");
+
+                    b.Property<bool>("IsFeePayer")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_fee_payer");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_primary");
+
+                    b.Property<bool>("LivesWithStudent")
+                        .HasColumnType("boolean")
+                        .HasColumnName("lives_with_student");
+
+                    b.Property<bool>("PortalAccess")
+                        .HasColumnType("boolean")
+                        .HasColumnName("portal_access");
+
+                    b.Property<bool>("ReceivesNotifications")
+                        .HasColumnType("boolean")
+                        .HasColumnName("receives_notifications");
+
+                    b.Property<string>("Relationship")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("relationship");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_student_guardians");
+
+                    b.HasIndex("GuardianId")
+                        .HasDatabaseName("ix_student_guardians_guardian_id");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_student_guardians_school_id");
+
+                    b.HasIndex("StudentId", "GuardianId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_student_guardians_student_id_guardian_id");
+
+                    b.ToTable("student_guardians", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.StudentMedicalProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Allergies")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("allergies");
+
+                    b.Property<string>("Conditions")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("conditions");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DoctorName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("doctor_name");
+
+                    b.Property<string>("DoctorPhone")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("doctor_phone");
+
+                    b.Property<string>("EmergencyInstructions")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("emergency_instructions");
+
+                    b.Property<string>("Medications")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("medications");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<string>("SpecialNeeds")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("special_needs");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_student_medical_profiles");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_student_medical_profiles_school_id");
+
+                    b.HasIndex("StudentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_student_medical_profiles_student_id");
+
+                    b.ToTable("student_medical_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.StudentStatusChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DestinationSchool")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("destination_school");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date")
+                        .HasColumnName("effective_date");
+
+                    b.Property<string>("FromStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("from_status");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid>("SchoolId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("school_id");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("to_status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id")
+                        .HasName("pk_student_status_changes");
+
+                    b.HasIndex("SchoolId")
+                        .HasDatabaseName("ix_student_status_changes_school_id");
+
+                    b.HasIndex("StudentId")
+                        .HasDatabaseName("ix_student_status_changes_student_id");
+
+                    b.ToTable("student_status_changes", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
                     b.HasOne("Scholar.Domain.Identity.User", null)
@@ -1970,6 +3371,121 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Admissions.AdmissionApplication", b =>
+                {
+                    b.HasOne("Scholar.Domain.Organization.AcademicYear", null)
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_admission_applications_academic_years_academic_year_id");
+
+                    b.HasOne("Scholar.Domain.Platform.Campus", null)
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_admission_applications_campuses_campus_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Grade", null)
+                        .WithMany()
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_admission_applications_grades_grade_id");
+
+                    b.HasOne("Scholar.Domain.Admissions.AdmissionInquiry", null)
+                        .WithMany()
+                        .HasForeignKey("InquiryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_admission_applications_admission_inquiries_inquiry_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_admission_applications_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_admission_applications_students_student_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Admissions.AdmissionInquiry", b =>
+                {
+                    b.HasOne("Scholar.Domain.Organization.AcademicYear", null)
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_admission_inquiries_academic_years_academic_year_id");
+
+                    b.HasOne("Scholar.Domain.Platform.Campus", null)
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_admission_inquiries_campuses_campus_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Grade", null)
+                        .WithMany()
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_admission_inquiries_grades_grade_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_admission_inquiries_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Admissions.ApplicationAssessment", b =>
+                {
+                    b.HasOne("Scholar.Domain.Admissions.AdmissionApplication", null)
+                        .WithMany("Assessments")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_application_assessments_admission_applications_application_");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_application_assessments_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Admissions.ApplicationStatusChange", b =>
+                {
+                    b.HasOne("Scholar.Domain.Admissions.AdmissionApplication", null)
+                        .WithMany("History")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_application_status_changes_admission_applications_applicati");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_application_status_changes_schools_school_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Documents.StoredFile", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_stored_files_schools_school_id");
                 });
 
             modelBuilder.Entity("Scholar.Domain.Identity.RefreshToken", b =>
@@ -2278,9 +3794,197 @@ namespace Scholar.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_number_sequences_schools_school_id");
                 });
 
+            modelBuilder.Entity("Scholar.Domain.Students.EmergencyContact", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_emergency_contacts_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", null)
+                        .WithMany("EmergencyContacts")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_emergency_contacts_students_student_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.Enrollment", b =>
+                {
+                    b.HasOne("Scholar.Domain.Organization.AcademicYear", null)
+                        .WithMany()
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_academic_years_academic_year_id");
+
+                    b.HasOne("Scholar.Domain.Platform.Campus", null)
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_campuses_campus_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Grade", null)
+                        .WithMany()
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_grades_grade_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Section", null)
+                        .WithMany()
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_sections_section_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", null)
+                        .WithMany("Enrollments")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_enrollments_students_student_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.Guardian", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_guardians_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_guardians_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.Student", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.Campus", null)
+                        .WithMany()
+                        .HasForeignKey("CampusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_students_campuses_campus_id");
+
+                    b.HasOne("Scholar.Domain.Organization.AcademicYear", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentAcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_students_academic_years_current_academic_year_id");
+
+                    b.HasOne("Scholar.Domain.Organization.Section", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentSectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_students_sections_current_section_id");
+
+                    b.HasOne("Scholar.Domain.Documents.StoredFile", null)
+                        .WithMany()
+                        .HasForeignKey("PhotoFileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_students_stored_files_photo_file_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_students_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Identity.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_students_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.StudentGuardian", b =>
+                {
+                    b.HasOne("Scholar.Domain.Students.Guardian", "Guardian")
+                        .WithMany("Students")
+                        .HasForeignKey("GuardianId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_guardians_guardians_guardian_id");
+
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_guardians_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", "Student")
+                        .WithMany("Guardians")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_guardians_students_student_id");
+
+                    b.Navigation("Guardian");
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.StudentMedicalProfile", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_medical_profiles_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_medical_profiles_students_student_id");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.StudentStatusChange", b =>
+                {
+                    b.HasOne("Scholar.Domain.Platform.School", null)
+                        .WithMany()
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_status_changes_schools_school_id");
+
+                    b.HasOne("Scholar.Domain.Students.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_student_status_changes_students_student_id");
+                });
+
             modelBuilder.Entity("Scholar.Domain.Access.Role", b =>
                 {
                     b.Navigation("Permissions");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Admissions.AdmissionApplication", b =>
+                {
+                    b.Navigation("Assessments");
+
+                    b.Navigation("History");
                 });
 
             modelBuilder.Entity("Scholar.Domain.Identity.User", b =>
@@ -2301,6 +4005,20 @@ namespace Scholar.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Scholar.Domain.Platform.School", b =>
                 {
                     b.Navigation("Campuses");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.Guardian", b =>
+                {
+                    b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("Scholar.Domain.Students.Student", b =>
+                {
+                    b.Navigation("EmergencyContacts");
+
+                    b.Navigation("Enrollments");
+
+                    b.Navigation("Guardians");
                 });
 #pragma warning restore 612, 618
         }

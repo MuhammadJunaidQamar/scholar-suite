@@ -2,10 +2,13 @@ using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Scholar.Domain.Access;
+using Scholar.Domain.Admissions;
+using Scholar.Domain.Documents;
 using Scholar.Domain.Auditing;
 using Scholar.Domain.Identity;
 using Scholar.Domain.Organization;
 using Scholar.Domain.Platform;
+using Scholar.Domain.Students;
 
 namespace Scholar.Application.Abstractions;
 
@@ -45,7 +48,26 @@ public interface IAppDbContext
     DbSet<GradingScale> GradingScales { get; }
     DbSet<GradingBand> GradingBands { get; }
 
+    // Students & guardians
+    DbSet<Student> Students { get; }
+    DbSet<Enrollment> Enrollments { get; }
+    DbSet<StudentStatusChange> StudentStatusChanges { get; }
+    DbSet<StudentMedicalProfile> StudentMedicalProfiles { get; }
+    DbSet<EmergencyContact> EmergencyContacts { get; }
+    DbSet<Guardian> Guardians { get; }
+    DbSet<StudentGuardian> StudentGuardians { get; }
+    DbSet<StoredFile> StoredFiles { get; }
+
+    // Admissions
+    DbSet<AdmissionInquiry> AdmissionInquiries { get; }
+    DbSet<AdmissionApplication> AdmissionApplications { get; }
+    DbSet<ApplicationStatusChange> ApplicationStatusChanges { get; }
+    DbSet<ApplicationAssessment> ApplicationAssessments { get; }
+
     DatabaseFacade Database { get; }
+
+    /// <summary>Change-tracking entry, used to apply a client's row version for optimistic concurrency.</summary>
+    Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TEntity> Entry<TEntity>(TEntity entity) where TEntity : class;
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

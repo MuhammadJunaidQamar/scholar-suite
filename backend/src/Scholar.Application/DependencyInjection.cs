@@ -2,6 +2,9 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Scholar.Application.Abstractions;
 using Scholar.Application.Access;
+using Scholar.Application.Admissions;
+using Scholar.Application.Documents;
+using Scholar.Application.Students;
 using Scholar.Application.Identity;
 using Scholar.Application.Organization;
 using Scholar.Application.Platform;
@@ -36,6 +39,15 @@ public static class DependencyInjection
         services.AddScoped<CalendarService>();
         services.AddScoped<GradingService>();
         services.AddScoped<StaffStructureService>();
+
+        // Students, guardians, documents, admissions
+        services.AddScoped<StudentService>();
+        services.AddScoped<StudentTransferService>();
+        services.AddScoped<GuardianService>();
+        services.AddScoped<SearchService>();
+        services.AddScoped<FileService>();
+        services.AddScoped<AdmissionService>();
+        services.AddScoped<PublicAdmissionService>();
 
         // Platform
         services.AddScoped<SchoolProvisioningService>();

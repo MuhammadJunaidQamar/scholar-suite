@@ -10,5 +10,7 @@
     <PackageReference Include="EFCore.NamingConventions" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" />
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="CsvHelper" />
   </ItemGroup>
 </Project>
