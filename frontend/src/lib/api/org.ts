@@ -105,6 +105,8 @@ export type Section = {
   roomName: string | null;
   subjectGroupId: string | null;
   isActive: boolean;
+  /** Students currently placed in the section. */
+  enrolled: number;
 };
 
 export type Subject = {

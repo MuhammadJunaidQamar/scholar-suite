@@ -141,6 +141,9 @@ public sealed class StudentAndAdmissionTests(ApiFactory factory) : IntegrationTe
         var detail = await owner.GetJsonAsync<StudentDetailDto>($"/api/students/{ids[0]}");
         Assert.Equal("Class 5 – B", detail.CurrentEnrollment!.ClassName);
         Assert.Contains(detail.Enrollments, e => e.Status == Domain.Students.EnrollmentStatus.Transferred && e.Reason == "Re-sectioning");
+        var sections = await owner.GetJsonAsync<List<Application.Organization.SectionDto>>($"/api/org/sections?academicYearId={s.YearId}");
+        Assert.Equal(3, sections.Single(x => x.Id == s.SectionB).Enrolled);
+        Assert.Equal(1, sections.Single(x => x.Id == s.SectionA).Enrolled);
 
         // Exporting a selection returns exactly those students.
         var csv = await (await owner.GetAsync($"/api/students/export?ids={ids[0]}&ids={ids[2]}")).Content.ReadAsStringAsync();
