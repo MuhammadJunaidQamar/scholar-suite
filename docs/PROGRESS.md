@@ -110,7 +110,7 @@ Frontend: `npx tsc --noEmit` clean, `npm run lint` 0 errors (9 pre-existing Reac
 | Branch | `main` → `origin` https://github.com/MuhammadJunaidQamar/scholar-suite (private) |
 | M0–M3 | `2fe23d5` … `8c0ed0f` |
 | M4 | `1018a90` students/admissions API · `e1d1926` per-period sequences · `d5cfcb9` demo students · `2e0f9f8` stable paging · `08c6c57` bulk moves · `ad6538c` section headcounts · `1759374` re-admission · `51dde3f` request logging · `4961c2b` students UI · `b31eddb` honest account handover · `81bd5d5` guardian campus scoping · `00ad6f4` guardians UI · `b613fd1` document lists, public crest · `2bd955e` admissions UI · `9640661` crest upload · `e4e15bf` build & phone fixes |
-| M5 | `4e28c00` staff directory · `9d897cf` attendance data model · `54f44d7` attendance API · `47e435f` demo staff & attendance · `f80712b` alert policy on registers · `ce617b1` staff UI & teaching settings · `842cbb7` attendance workspace · `db078f4` staff delete fix |
+| M5 | `4e28c00` staff directory · `9d897cf` attendance data model · `54f44d7` attendance API · `47e435f` demo staff & attendance · `f80712b` alert policy on registers · `ce617b1` staff UI & teaching settings · `842cbb7` attendance workspace · `db078f4` staff delete fix · `a867fb7` docs · `9fc83ef` leave withdraw fix |
 | Latest pushed | every commit above is pushed; verify with `git log origin/main -1` |
 
 ## Known problems / decisions to revisit
