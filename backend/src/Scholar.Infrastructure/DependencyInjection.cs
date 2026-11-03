@@ -34,6 +34,9 @@ public static class DependencyInjection
         services.AddSingleton<Application.Documents.IFileStorage, Documents.LocalFileStorage>();
         services.AddSingleton<Application.Common.ITabularExporter, Exports.TabularExporter>();
         services.AddSingleton<Application.Common.ITabularReader, Exports.TabularReader>();
+        // No SMS/WhatsApp/email gateway is bundled: IMessageChannelProvider implementations are added when a school
+        // connects one. The sweeper only re-dispatches messages left pending.
+        services.AddHostedService<Messaging.PendingMessageSweeper>();
 
         return services;
     }

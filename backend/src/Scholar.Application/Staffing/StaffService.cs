@@ -277,7 +277,10 @@ public sealed class StaffService(
         await access.RequireAsync(Permissions.Staff.Delete, ct);
         var staff = await LoadScopedAsync(id, ct);
         var hasHistory = await db.Sections.AnyAsync(x => x.ClassTeacherId == id, ct)
-                         || await db.SectionSubjectTeachers.AnyAsync(t => t.StaffId == id, ct);
+                         || await db.SectionSubjectTeachers.AnyAsync(t => t.StaffId == id, ct)
+                         || await db.StaffAttendanceRecords.AnyAsync(r => r.StaffId == id, ct)
+                         || await db.StaffLeaveRequests.AnyAsync(l => l.StaffId == id, ct)
+                         || await db.AttendanceRegisters.AnyAsync(r => r.TakenByStaffId == id, ct);
         if (hasHistory)
         {
             throw new ConflictException("staff.has_history",

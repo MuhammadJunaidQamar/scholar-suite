@@ -89,6 +89,10 @@ internal sealed class ApiExceptionHandler(IProblemDetailsService problemDetails,
     {
         null => "A record with the same values already exists.",
         _ when constraint.Contains("idempotency", StringComparison.Ordinal) => "This request was already processed.",
+        _ when constraint.StartsWith("ux_attendance_registers", StringComparison.Ordinal) =>
+            "Someone else has just taken this register. Reload it to see their marks.",
+        _ when constraint.StartsWith("ix_staff_attendance_records", StringComparison.Ordinal) =>
+            "Someone else has just saved staff attendance for this day. Reload it to see their marks.",
         _ => "A record with the same values already exists.",
     };
 

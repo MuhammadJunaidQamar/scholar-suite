@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Scholar.Application.Abstractions;
 using Scholar.Application.Access;
 using Scholar.Application.Admissions;
+using Scholar.Application.Attendance;
+using Scholar.Application.Communication;
 using Scholar.Application.Documents;
 using Scholar.Application.Students;
 using Scholar.Application.Identity;
@@ -55,10 +57,25 @@ public static class DependencyInjection
         services.AddScoped<StaffService>();
         services.AddScoped<TeachingAssignmentService>();
 
+        // Attendance & leave
+        services.AddScoped<AttendanceCalendar>();
+        services.AddScoped<RegisterService>();
+        services.AddScoped<StudentLeaveService>();
+        services.AddScoped<AttendanceReportService>();
+        services.AddScoped<StaffAttendanceService>();
+        services.AddScoped<StaffLeaveService>();
+        services.AddScoped<BellScheduleService>();
+        services.AddScoped<TeacherHomeService>();
+        services.AddScoped<AbsenceNotifier>();
+
+        // Communication (outbox)
+        services.AddScoped<MessageDispatcher>();
+
         // Platform
         services.AddScoped<SchoolProvisioningService>();
         services.AddScoped<ISchoolProvisioningStep, SystemRolesProvisioningStep>();
         services.AddScoped<ISchoolProvisioningStep, OrganizationDefaultsProvisioningStep>();
+        services.AddScoped<ISchoolProvisioningStep, AttendanceDefaultsProvisioningStep>();
 
         return services;
     }

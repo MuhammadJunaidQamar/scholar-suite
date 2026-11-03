@@ -105,6 +105,7 @@ try
     api.MapStudentEndpoints();
     api.MapAdmissionEndpoints();
     api.MapStaffEndpoints();
+    api.MapAttendanceEndpoints();
     api.MapPlatformEndpoints();
 
     app.Run();
