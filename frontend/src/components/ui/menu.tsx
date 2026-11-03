@@ -31,12 +31,18 @@ export function DropdownMenuItem({
   tone,
   shortcut,
   children,
+  asChild,
   ...props
 }: React.ComponentProps<typeof Menu.Item> & { tone?: "danger"; shortcut?: string }) {
   return (
-    <Menu.Item className={cn(item, tone === "danger" && "text-danger [&_svg]:text-danger data-[highlighted]:bg-danger-soft", className)} {...props}>
-      {children}
-      {shortcut && <span className="ml-auto pl-4 text-xs text-ink-3">{shortcut}</span>}
+    <Menu.Item asChild={asChild} className={cn(item, tone === "danger" && "text-danger [&_svg]:text-danger data-[highlighted]:bg-danger-soft", className)} {...props}>
+      {/* With asChild, Radix merges the item onto exactly one child element: a sibling (even an empty one) breaks it. */}
+      {asChild ? children : (
+        <>
+          {children}
+          {shortcut && <span className="ml-auto pl-4 text-xs text-ink-3">{shortcut}</span>}
+        </>
+      )}
     </Menu.Item>
   );
 }
