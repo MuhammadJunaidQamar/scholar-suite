@@ -101,7 +101,7 @@ public sealed class GuardianService(
         await access.RequireAsync(Permissions.Guardians.View, ct);
         if (phone.Count(char.IsDigit) < 7) return [];
         var normalized = Guardian.NormalizePhone(phone);
-        return await db.Guardians.Where(g => g.Phone == normalized || g.AlternatePhone == phone)
+        return await db.Guardians.Where(g => g.Phone == normalized || g.AlternatePhone == normalized)
             .Select(g => new GuardianMatchDto(g.Id, g.FullName, g.Phone, g.Email, g.Students.Select(l => l.Student.FullName).ToList()))
             .ToListAsync(ct);
     }
@@ -236,7 +236,7 @@ public sealed class GuardianService(
 
     private static void Apply(Guardian g, SaveGuardianRequest r)
     {
-        g.AlternatePhone = StudentService.Clean(r.AlternatePhone);
+        g.AlternatePhone = string.IsNullOrWhiteSpace(r.AlternatePhone) ? null : Guardian.NormalizePhone(r.AlternatePhone);
         g.Email = StudentService.Clean(r.Email);
         g.NationalId = StudentService.Digits(r.NationalId);
         g.Occupation = StudentService.Clean(r.Occupation);

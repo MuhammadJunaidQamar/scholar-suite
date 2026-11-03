@@ -202,7 +202,10 @@ public sealed class StudentAndAdmissionTests(ApiFactory factory) : IntegrationTe
         Assert.Single(withdrawn.StatusHistory);
 
         Assert.Equal(0, (await owner.GetJsonAsync<PagedResult<StudentListItemDto>>("/api/students")).Total);
-        Assert.Equal(1, (await owner.GetJsonAsync<PagedResult<StudentListItemDto>>("/api/students?scope=left")).Total);
+        var leaver = Assert.Single((await owner.GetJsonAsync<PagedResult<StudentListItemDto>>("/api/students?scope=left")).Items);
+        Assert.Equal("Class 5 – A", leaver.ClassName); // the class they left from
+        Assert.Null(leaver.SectionId);
+        Assert.Equal(new DateOnly(2026, 11, 1), leaver.StatusChangedOn);
 
         // Coming back needs a section: an active student without a placement would be missing from every register.
         var noSection = await owner.PostAsync($"/api/students/{student.Id}/status", new { status = "Active", effectiveDate = new DateOnly(2027, 1, 4) });

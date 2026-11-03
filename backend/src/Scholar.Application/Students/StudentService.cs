@@ -35,11 +35,15 @@ public sealed class StudentService(IAppDbContext db, IAccessContext access, ISeq
             s.Id, s.AdmissionNumber, s.FullName, s.Gender, s.DateOfBirth, s.PhotoFileId, s.Status, s.CampusId,
             db.Campuses.Where(c => c.Id == s.CampusId).Select(c => c.Name).First(),
             s.CurrentSectionId,
-            db.Sections.Where(x => x.Id == s.CurrentSectionId).Select(x => x.Grade.Name + " – " + x.Name).FirstOrDefault(),
+            s.CurrentSectionId != null
+                ? db.Sections.Where(x => x.Id == s.CurrentSectionId).Select(x => x.Grade.Name + " – " + x.Name).FirstOrDefault()
+                : db.Enrollments.Where(e => e.StudentId == s.Id).OrderByDescending(e => e.StartDate)
+                    .Select(e => db.Sections.Where(x => x.Id == e.SectionId).Select(x => x.Grade.Name + " – " + x.Name).FirstOrDefault())
+                    .FirstOrDefault(),
             db.Sections.Where(x => x.Id == s.CurrentSectionId).Select(x => (int?)x.Grade.LevelOrder).FirstOrDefault(),
             s.Guardians.OrderByDescending(g => g.IsPrimary).Select(g => g.Guardian.FullName).FirstOrDefault(),
             s.Guardians.OrderByDescending(g => g.IsPrimary).Select(g => g.Guardian.Phone).FirstOrDefault(),
-            s.AdmissionDate, s.MedicalAlert != null), ct);
+            s.AdmissionDate, s.MedicalAlert != null, s.StatusChangedOn), ct);
     }
 
     /// <summary>The filtered (unsorted, unpaged) student set; shared by the list and exports.</summary>

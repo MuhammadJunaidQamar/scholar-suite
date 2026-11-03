@@ -57,19 +57,23 @@ function avatarStyle(name: string): React.CSSProperties {
   };
 }
 
-export function Avatar({ name, src, size = 28, className, square }: {
+export function Avatar({ name, src, size = 28, className, square, onImageError }: {
   name: string;
   src?: string | null;
   size?: number;
   className?: string;
   square?: boolean;
+  onImageError?: () => void;
 }) {
   return (
     <AvatarPrimitive.Root
       className={cn("relative inline-flex shrink-0 overflow-hidden select-none", square ? "rounded-md" : "rounded-full", className)}
       style={{ width: size, height: size }}
     >
-      {src && <AvatarPrimitive.Image src={src} alt="" className="size-full object-cover" />}
+      {src && (
+        <AvatarPrimitive.Image src={src} alt="" className="size-full object-cover"
+          onLoadingStatusChange={(status) => status === "error" && onImageError?.()} />
+      )}
       <AvatarPrimitive.Fallback
         delayMs={src ? 300 : 0}
         className={cn(
@@ -131,7 +135,12 @@ export function DetailList({ items, className, columns = 1 }: {
   return (
     <dl className={cn("grid", columns === 2 && "sm:grid-cols-2 sm:gap-x-10", className)}>
       {items.filter((i) => !i.hidden).map((item, index) => (
-        <div key={index} className="grid grid-cols-[minmax(7rem,40%)_1fr] gap-3 border-b border-line py-2.5 text-base last:border-b-0">
+        <div key={index}
+          className={cn(
+            "grid grid-cols-[minmax(7rem,min(40%,13rem))_1fr] gap-3 border-b border-line py-2.5 text-base last:border-b-0",
+            // In two columns the bottom row may hold two items: the left one loses its rule too.
+            columns === 2 && "sm:[&:nth-last-child(2):nth-child(odd)]:border-b-0",
+          )}>
           <dt className="text-ink-2">{item.label}</dt>
           <dd className="min-w-0 text-ink">{item.value ?? <span className="text-ink-3">—</span>}</dd>
         </div>

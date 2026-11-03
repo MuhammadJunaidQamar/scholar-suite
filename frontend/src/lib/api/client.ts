@@ -180,6 +180,53 @@ export async function request<T>(method: string, path: string, options: RequestO
   return (type.includes("json") ? await response.json() : await response.blob()) as T;
 }
 
+function fileNameFrom(disposition: string | null): string | null {
+  if (!disposition) return null;
+  const utf8 = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+  if (utf8?.[1]) return decodeURIComponent(utf8[1]);
+  const plain = /filename="?([^";]+)"?/i.exec(disposition);
+  return plain?.[1] ?? null;
+}
+
+/** Downloads a file the API streams (exports, templates, documents) under the name the server gave it. */
+export async function download(path: string, query?: Query): Promise<void> {
+  let response = await send("GET", path, { query });
+  if (response.status === 401 && (await refreshSession())) response = await send("GET", path, { query });
+  if (!response.ok) throw new ApiError(response.status, await parseProblem(response));
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileNameFrom(response.headers.get("content-disposition")) ?? "download";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
+/**
+ * Opens a private file (e.g. a scanned B-Form) in a new tab. The tab is opened during the click so popup blockers
+ * allow it, then given the file once it has been fetched with the session (refreshing it if it expired).
+ */
+export async function openFile(path: string): Promise<void> {
+  const tab = window.open("about:blank", "_blank");
+  try {
+    let response = await send("GET", path, {});
+    if (response.status === 401 && (await refreshSession())) response = await send("GET", path, {});
+    if (!response.ok) throw new ApiError(response.status, await parseProblem(response));
+    const url = URL.createObjectURL(await response.blob());
+    if (tab) tab.location.href = url;
+    else window.location.assign(url);
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (error) {
+    tab?.close();
+    throw error;
+  }
+}
+
+/** Sends a multipart form (file uploads). */
+export const upload = <T>(path: string, form: FormData, query?: Query) => request<T>("POST", path, { body: form, query });
+
 export const api = {
   get: <T>(path: string, query?: Query, signal?: AbortSignal) => request<T>("GET", path, { query, signal }),
   post: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, "body">) =>

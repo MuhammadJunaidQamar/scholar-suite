@@ -18,9 +18,11 @@ public sealed record StudentQuery : PageQuery
     public Guid[]? Ids { get; init; }
 }
 
+/// <param name="ClassName">The current class; for a student who has left, the last class they were in.</param>
+/// <param name="StatusChangedOn">When the current status took effect (e.g. the leaving date).</param>
 public sealed record StudentListItemDto(Guid Id, string AdmissionNumber, string FullName, Gender Gender, DateOnly DateOfBirth,
     Guid? PhotoFileId, StudentStatus Status, Guid CampusId, string CampusName, Guid? SectionId, string? ClassName, int? GradeOrder,
-    string? GuardianName, string? GuardianPhone, DateOnly AdmissionDate, bool HasMedicalAlert);
+    string? GuardianName, string? GuardianPhone, DateOnly AdmissionDate, bool HasMedicalAlert, DateOnly? StatusChangedOn);
 
 public sealed record GuardianLinkDto(Guid LinkId, Guid GuardianId, string FullName, GuardianRelationship Relationship, string Phone,
     string? Email, string? Occupation, bool IsPrimary, bool IsEmergencyContact, bool LivesWithStudent, bool CanPickUp, bool IsFeePayer,

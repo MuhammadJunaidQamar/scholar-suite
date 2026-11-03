@@ -47,6 +47,7 @@ export function FormDialog<T extends FieldValues>({
   description?: React.ReactNode;
   form: UseFormReturn<T>;
   defaults: T;
+  /** Resolve `false` to keep the dialog open without a success message (the dialog has shown its own feedback). */
   onSubmit: (values: T) => Promise<unknown>;
   submitLabel?: string;
   size?: "sm" | "md" | "lg" | "xl";
@@ -67,7 +68,7 @@ export function FormDialog<T extends FieldValues>({
     if (pending) return;
     setPending(true);
     try {
-      await onSubmit(values);
+      if ((await onSubmit(values)) === false) return;
       if (successMessage) toast.success(typeof successMessage === "function" ? successMessage(values) : successMessage);
       onOpenChange(false);
     } catch (error) {
