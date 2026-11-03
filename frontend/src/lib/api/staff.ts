@@ -215,7 +215,12 @@ export function useChangeStaffStatus() {
 
 export function useDeleteStaff() {
   const invalidate = useInvalidate();
-  return useMutation({ mutationFn: (id: string) => api.delete(`/staff/${id}`), onSuccess: () => invalidate(...staffTouches) });
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/staff/${id}`),
+    // Refresh everything except the deleted record itself: its profile is still on screen while the page navigates
+    // away, and refetching (or removing) it would request a record that no longer exists.
+    onSuccess: () => invalidate(["staff", "list"], ["staff", "options"], ["org", "teaching"], ["org", "sections"], ["attendance"]),
+  });
 }
 
 export function useGrantStaffAccess() {
